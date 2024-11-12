@@ -1,41 +1,52 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Layout } from './src/components/Layout';
-import { Header } from './src/components/Header';
-import { BottomBar } from './src/components/BottomBar';
-import { TabType } from './src/constants/types';
-import { colors } from './src/constants/colors';
+import { SafeAreaView, StatusBar, StyleSheet, View, Text } from 'react-native';
+import Header from './src/components/Header';
+import BottomBar from './src/components/BottomBar';
+import SettingsScreen from './src/screens/SettingsScreen';
 
-const App: React.FC = () => {
+type TabType = 'transactions' | 'accounts' | 'settings';
+
+const App = () => {
   const [activeTab, setActiveTab] = useState<TabType>('transactions');
 
+  const renderScreen = () => {
+    switch (activeTab) {
+      case 'settings':
+        return <SettingsScreen />;
+      case 'transactions':
+        return (
+          <View style={styles.content}>
+            <Text>Transactions Screen</Text>
+          </View>
+        );
+      case 'accounts':
+        return (
+          <View style={styles.content}>
+            <Text>Accounts Screen</Text>
+          </View>
+        );
+    }
+  };
+
   return (
-    <Layout>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFF" />
       <Header />
-      <View style={styles.content}>
-        <Text style={styles.contentText}>
-          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-        </Text>
-      </View>
-      <BottomBar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-      />
-    </Layout>
+      {renderScreen()}
+      <BottomBar activeTab={activeTab} onTabChange={setActiveTab} />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFF',
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-  },
-  contentText: {
-    fontSize: 20,
-    color: colors.text,
-    fontWeight: '500',
   },
 });
 

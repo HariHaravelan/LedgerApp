@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { colors } from '../constants/colors';
-import { TabType } from '../constants/types';
+
+type TabType = 'transactions' | 'accounts' | 'settings';
 
 interface BottomBarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
 }
 
-export const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) => {
+const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) => {
   return (
     <View style={styles.bottomBar}>
       <TouchableOpacity 
@@ -19,7 +19,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) 
         <Icon 
           name={activeTab === 'transactions' ? 'list-circle' : 'list-circle-outline'} 
           size={24} 
-          color={activeTab === 'transactions' ? colors.gradientStart : colors.textLight} 
+          color={activeTab === 'transactions' ? '#2E5BFF' : '#8E8E93'} 
         />
         <Text style={[
           styles.tabText,
@@ -36,7 +36,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) 
         <Icon 
           name={activeTab === 'accounts' ? 'wallet' : 'wallet-outline'} 
           size={24} 
-          color={activeTab === 'accounts' ? colors.gradientStart : colors.textLight} 
+          color={activeTab === 'accounts' ? '#2E5BFF' : '#8E8E93'} 
         />
         <Text style={[
           styles.tabText,
@@ -53,7 +53,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) 
         <Icon 
           name={activeTab === 'settings' ? 'settings' : 'settings-outline'} 
           size={24} 
-          color={activeTab === 'settings' ? colors.gradientStart : colors.textLight} 
+          color={activeTab === 'settings' ? '#2E5BFF' : '#8E8E93'} 
         />
         <Text style={[
           styles.tabText,
@@ -69,16 +69,13 @@ export const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) 
 const styles = StyleSheet.create({
   bottomBar: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#E8ECEF',
     elevation: 8,
-    shadowColor: colors.text,
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
   },
@@ -92,9 +89,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
     fontWeight: '500',
-    color: colors.textLight,
+    color: '#8E8E93',
   },
   activeTabText: {
-    color: colors.gradientStart,
+    color: '#2E5BFF',
   },
 });
+
+export default BottomBar;
