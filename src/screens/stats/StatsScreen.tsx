@@ -81,23 +81,13 @@ const StatsScreen = () => {
     `;
   };
 
-  const formatAmount = (amount: number): string => {
-    const isNegative = amount < 0;
-    const absAmount = Math.abs(amount);
-    
-    // Convert to string and split into array of 3 digits from right
-    let numStr = absAmount.toString();
-    let lastThree = numStr.substring(numStr.length - 3);
-    let otherNumbers = numStr.substring(0, numStr.length - 3);
-    
-    if (otherNumbers !== '') {
-      lastThree = ',' + lastThree;
-    }
-    
-    // Add commas for remaining numbers
-    const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
-    
-    return `${formatted}`;
+  const formatAmount = (amount: number) => {
+    // return new Intl.NumberFormat('en-IN', {
+    //   style: 'currency',
+    //   currency: 'INR',
+    //   maximumFractionDigits: 0,
+    // }).format(amount);
+    return amount;
   };
 
   return (
