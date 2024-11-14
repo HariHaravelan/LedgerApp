@@ -8,134 +8,91 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
 import { colors } from '../../constants/colors';
 
-// Sample data - you'll want to replace this with real data
 const incomeData = [
-  { name: 'Salary', value: 75000, color: '#10B981' },
-  { name: 'Freelance', value: 15000, color: '#3B82F6' },
-  { name: 'Investments', value: 10000, color: '#6366F1' },
-  { name: 'Other', value: 5000, color: '#8B5CF6' },
+  { name: 'Salary', value: 75000, color: '#10B981', legendFontColor: '#2D3142' },
+  { name: 'Freelance', value: 15000, color: '#3B82F6', legendFontColor: '#2D3142' },
+  { name: 'Investments', value: 10000, color: '#6366F1', legendFontColor: '#2D3142' },
+  { name: 'Other', value: 5000, color: '#8B5CF6', legendFontColor: '#2D3142' },
 ];
 
 const expenseData = [
-  { name: 'Rent', value: 25000, color: '#EF4444' },
-  { name: 'Food', value: 12000, color: '#F59E0B' },
-  { name: 'Transport', value: 8000, color: '#EC4899' },
-  { name: 'Shopping', value: 15000, color: '#8B5CF6' },
-  { name: 'Bills', value: 10000, color: '#6366F1' },
+  { name: 'Rent', value: 25000, color: '#EF4444', legendFontColor: '#2D3142' },
+  { name: 'Food', value: 12000, color: '#F59E0B', legendFontColor: '#2D3142' },
+  { name: 'Transport', value: 8000, color: '#EC4899', legendFontColor: '#2D3142' },
+  { name: 'Shopping', value: 15000, color: '#8B5CF6', legendFontColor: '#2D3142' },
+  { name: 'Bills', value: 10000, color: '#6366F1', legendFontColor: '#2D3142' },
 ];
 
-type ChartType = 'income' | 'expense';
+const formatAmount = (amount: number): string => {
+  const absAmount = Math.abs(amount);
+  let numStr = absAmount.toString();
+  let lastThree = numStr.substring(numStr.length - 3);
+  let otherNumbers = numStr.substring(0, numStr.length - 3);
+  if (otherNumbers !== '') lastThree = ',' + lastThree;
+  const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
+  return `₹${formatted}`;
+};
 
 const StatsScreen = () => {
-  const [activeChart, setActiveChart] = useState<ChartType>('income');
-  const windowWidth = Dimensions.get('window').width;
-  const chartSize = windowWidth - 48; // Leaving some padding
+  const [activeChart, setActiveChart] = useState<'income' | 'expense'>('income');
+  const screenWidth = Dimensions.get('window').width;
 
   const getTotal = (data: typeof incomeData) => {
     return data.reduce((sum, item) => sum + item.value, 0);
   };
 
-  // Calculate percentages and angles for the pie chart
-  const calculatePieSegments = (data: typeof incomeData) => {
-    const total = getTotal(data);
-    let startAngle = 0;
-    
-    return data.map(item => {
-      const percentage = (item.value / total) * 100;
-      const angle = (percentage / 100) * 2 * Math.PI;
-      const segment = {
-        ...item,
-        percentage,
-        startAngle,
-        endAngle: startAngle + angle,
-      };
-      startAngle += angle;
-      return segment;
-    });
-  };
+  const chartData = (activeChart === 'income' ? incomeData : expenseData).map(item => ({
+    name: item.name,
+    population: item.value,
+    color: item.color,
+    legendFontColor: item.legendFontColor,
+    legendFontSize: 12,
+  }));
 
-  // Create SVG path for a pie segment
-  const createPiePath = (
-    segment: ReturnType<typeof calculatePieSegments>[0],
-    size: number,
-    padding: number = 0
-  ) => {
-    const radius = (size / 2) - padding;
-    const centerX = size / 2;
-    const centerY = size / 2;
-
-    const startX = centerX + radius * Math.cos(segment.startAngle);
-    const startY = centerY + radius * Math.sin(segment.startAngle);
-    const endX = centerX + radius * Math.cos(segment.endAngle);
-    const endY = centerY + radius * Math.sin(segment.endAngle);
-
-    const largeArcFlag = segment.endAngle - segment.startAngle > Math.PI ? 1 : 0;
-
-    return `
-      M ${centerX} ${centerY}
-      L ${startX} ${startY}
-      A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}
-      Z
-    `;
-  };
-
-  const formatAmount = (amount: number) => {
-    // return new Intl.NumberFormat('en-IN', {
-    //   style: 'currency',
-    //   currency: 'INR',
-    //   maximumFractionDigits: 0,
-    // }).format(amount);
-    return amount;
+  const chartConfig = {
+    backgroundGradientFrom: '#FFF',
+    backgroundGradientTo: '#FFF',
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   };
 
   return (
     <View style={styles.container}>
-      {/* Chart Type Selector */}
       <View style={styles.chartSelector}>
         <TouchableOpacity
-          style={[
-            styles.selectorButton,
-            activeChart === 'income' && styles.selectorButtonActive
-          ]}
+          style={[styles.selectorButton, activeChart === 'income' && styles.selectorButtonActive]}
           onPress={() => setActiveChart('income')}
         >
-          <Text style={[
-            styles.selectorText,
-            activeChart === 'income' && styles.selectorTextActive
-          ]}>Income</Text>
+          <Text style={[styles.selectorText, activeChart === 'income' && styles.selectorTextActive]}>
+            Income
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.selectorButton,
-            activeChart === 'expense' && styles.selectorButtonActive
-          ]}
+          style={[styles.selectorButton, activeChart === 'expense' && styles.selectorButtonActive]}
           onPress={() => setActiveChart('expense')}
         >
-          <Text style={[
-            styles.selectorText,
-            activeChart === 'expense' && styles.selectorTextActive
-          ]}>Expense</Text>
+          <Text style={[styles.selectorText, activeChart === 'expense' && styles.selectorTextActive]}>
+            Expense
+          </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Pie Chart */}
         <View style={styles.chartContainer}>
-          <svg width={chartSize} height={chartSize} viewBox={`0 0 ${chartSize} ${chartSize}`}>
-            {calculatePieSegments(activeChart === 'income' ? incomeData : expenseData)
-              .map((segment, index) => (
-                <path
-                  key={index}
-                  d={createPiePath(segment, chartSize, 4)}
-                  fill={segment.color}
-                />
-            ))}
-          </svg>
+          <PieChart
+            data={chartData}
+            width={screenWidth - 32}
+            height={220}
+            chartConfig={chartConfig}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="0"
+            absolute
+          />
         </View>
 
-        {/* Legend */}
         <View style={styles.legendContainer}>
           {(activeChart === 'income' ? incomeData : expenseData).map((item, index) => (
             <View key={index} style={styles.legendItem}>
@@ -143,20 +100,19 @@ const StatsScreen = () => {
               <View style={styles.legendText}>
                 <Text style={styles.legendLabel}>{item.name}</Text>
                 <Text style={styles.legendValue}>
-                  {formatAmount(item.value)} ({((item.value / getTotal(activeChart === 'income' ? incomeData : expenseData)) * 100).toFixed(1)}%)
+                  {formatAmount(item.value)} 
+                  ({((item.value / getTotal(activeChart === 'income' ? incomeData : expenseData)) * 100).toFixed(1)}%)
                 </Text>
               </View>
             </View>
           ))}
         </View>
 
-        {/* Total */}
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total {activeChart === 'income' ? 'Income' : 'Expense'}</Text>
-          <Text style={[
-            styles.totalValue,
-            { color: activeChart === 'income' ? '#10B981' : '#EF4444' }
-          ]}>
+          <Text style={styles.totalLabel}>
+            Total {activeChart === 'income' ? 'Income' : 'Expense'}
+          </Text>
+          <Text style={[styles.totalValue, { color: activeChart === 'income' ? '#10B981' : '#EF4444' }]}>
             {formatAmount(getTotal(activeChart === 'income' ? incomeData : expenseData))}
           </Text>
         </View>
@@ -202,6 +158,9 @@ const styles = StyleSheet.create({
   chartContainer: {
     alignItems: 'center',
     marginVertical: 20,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
   },
   legendContainer: {
     backgroundColor: colors.white,
