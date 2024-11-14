@@ -4,6 +4,7 @@ import Header from './src/components/Header';
 import BottomBar from './src/components/BottomBar';
 import SettingsScreen from './src/screens/SettingsScreen';
 import AccountsScreen from './src/screens/AccountScreen';
+import TransactionsScreen from './src/screens/TransactionsScreens';
 
 type TabType = 'transactions' | 'accounts' | 'settings';
 
@@ -16,9 +17,7 @@ const App = () => {
         return <SettingsScreen />;
       case 'transactions':
         return (
-          <View style={styles.content}>
-            <Text>Transactions Screen</Text>
-          </View>
+          <TransactionsScreen />
         );
       case 'accounts':
         return (
