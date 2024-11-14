@@ -1,6 +1,8 @@
+// src/components/BottomBar.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { colors } from '../constants/colors';
 
 type TabType = 'transactions' | 'accounts' | 'settings';
 
@@ -10,89 +12,102 @@ interface BottomBarProps {
 }
 
 const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) => {
+  const TabButton = ({ 
+    tab, 
+    icon, 
+    label 
+  }: { 
+    tab: TabType; 
+    icon: string;
+    label: string;
+  }) => (
+    <TouchableOpacity
+      style={styles.tab}
+      onPress={() => onTabChange(tab)}
+      activeOpacity={0.7}
+    >
+      <View style={[
+        styles.iconContainer,
+        activeTab === tab && styles.activeIconContainer
+      ]}>
+        <Icon
+          name={activeTab === tab ? icon : `${icon}-outline`}
+          size={24}
+          color={activeTab === tab ? colors.primary : colors.textLight}
+        />
+      </View>
+      <Text style={[
+        styles.tabLabel,
+        activeTab === tab && styles.activeTabLabel
+      ]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <View style={styles.bottomBar}>
-      <TouchableOpacity 
-        style={styles.tabButton} 
-        onPress={() => onTabChange('transactions')}
-      >
-        <Icon 
-          name={activeTab === 'transactions' ? 'list-circle' : 'list-circle-outline'} 
-          size={24} 
-          color={activeTab === 'transactions' ? '#2E5BFF' : '#8E8E93'} 
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <TabButton
+          tab="transactions"
+          icon="list-circle"
+          label="Transactions"
         />
-        <Text style={[
-          styles.tabText,
-          activeTab === 'transactions' && styles.activeTabText
-        ]}>
-          Transactions
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.tabButton} 
-        onPress={() => onTabChange('accounts')}
-      >
-        <Icon 
-          name={activeTab === 'accounts' ? 'wallet' : 'wallet-outline'} 
-          size={24} 
-          color={activeTab === 'accounts' ? '#2E5BFF' : '#8E8E93'} 
+        <TabButton
+          tab="accounts"
+          icon="wallet"
+          label="Accounts"
         />
-        <Text style={[
-          styles.tabText,
-          activeTab === 'accounts' && styles.activeTabText
-        ]}>
-          Accounts
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.tabButton} 
-        onPress={() => onTabChange('settings')}
-      >
-        <Icon 
-          name={activeTab === 'settings' ? 'settings' : 'settings-outline'} 
-          size={24} 
-          color={activeTab === 'settings' ? '#2E5BFF' : '#8E8E93'} 
+        <TabButton
+          tab="settings"
+          icon="settings"
+          label="Settings"
         />
-        <Text style={[
-          styles.tabText,
-          activeTab === 'settings' && styles.activeTabText
-        ]}>
-          Settings
-        </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  bottomBar: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+  container: {
+    backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#E8ECEF',
-    elevation: 8,
+    borderTopColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
+    elevation: 5,
   },
-  tabButton: {
+  content: {
+    flexDirection: 'row',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+    paddingTop: 8,
+  },
+  tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
   },
-  tabText: {
-    marginTop: 4,
+  iconContainer: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 24,
+    marginBottom: 2,
+  },
+  activeIconContainer: {
+    backgroundColor: `${colors.primary}10`,
+  },
+  tabLabel: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#8E8E93',
+    color: colors.textLight,
+    marginTop: 2,
   },
-  activeTabText: {
-    color: '#2E5BFF',
+  activeTabLabel: {
+    color: colors.primary,
+    fontWeight: '500',
   },
 });
 

@@ -3,6 +3,7 @@ import { SafeAreaView, StatusBar, StyleSheet, View, Text } from 'react-native';
 import Header from './src/components/Header';
 import BottomBar from './src/components/BottomBar';
 import SettingsScreen from './src/screens/SettingsScreen';
+import AccountsScreen from './src/screens/AccountScreen';
 
 type TabType = 'transactions' | 'accounts' | 'settings';
 
@@ -21,9 +22,7 @@ const App = () => {
         );
       case 'accounts':
         return (
-          <View style={styles.content}>
-            <Text>Accounts Screen</Text>
-          </View>
+          <AccountsScreen />
         );
     }
   };

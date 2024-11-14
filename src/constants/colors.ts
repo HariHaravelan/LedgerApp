@@ -1,15 +1,13 @@
 // src/constants/colors.ts
 export const colors = {
-  primary: '#6B8FF9',          // Soft blue
-  primaryLight: '#E8EFFF',     // Light blue background
-  secondary: '#FF9B9B',        // Soft coral
-  background: '#F8FAFF',       // Very light blue-grey
+  primary: '#3B82F6',
+  primaryDark: '#2563EB',
+  background: '#F8FAFF',
   white: '#FFFFFF',
-  text: '#2D3142',            // Dark grey
-  textLight: '#8E8E93',       // Medium grey
-  border: '#E8ECEF',          // Light grey
-  success: '#4CAF50',         // Soft green
-  error: '#FF5252',           // Soft red
-  gradientStart: '#6B8FF9',   // Start color for gradients
-  gradientEnd: '#A5B9FF',     // End color for gradients
+  text: '#1F2937',
+  textSecondary: '#6B7280',
+  textLight: '#9CA3AF',
+  error: '#EF4444',
+  border: '#E5E7EB',
+  divider: '#F3F4F6',
 };
