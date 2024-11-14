@@ -1,10 +1,9 @@
-// src/components/BottomBar.tsx
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../constants/colors';
 
-type TabType = 'transactions' | 'accounts' | 'settings';
+type TabType = 'transactions' | 'accounts' | 'stats' | 'settings';
 
 interface BottomBarProps {
   activeTab: TabType;
@@ -57,6 +56,11 @@ const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) => {
           tab="accounts"
           icon="wallet"
           label="Accounts"
+        />
+        <TabButton
+          tab="stats"
+          icon="pie-chart"
+          label="Stats"
         />
         <TabButton
           tab="settings"

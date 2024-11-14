@@ -1,12 +1,15 @@
+// App.tsx
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, View, Text } from 'react-native';
+import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
 import Header from './src/components/Header';
 import BottomBar from './src/components/BottomBar';
-import SettingsScreen from './src/screens/SettingsScreen';
-import AccountsScreen from './src/screens/AccountScreen';
-import TransactionsScreen from './src/screens/TransactionsScreens';
+import TransactionsScreen from './src/screens/transaction/TransactionsScreen';
+import SettingsScreen from './src/screens/settings/SettingsScreen';
+import StatsScreen from './src/screens/stats/StatsScreen';
+import { colors } from './src/constants/colors';
+import AccountsScreen from './src/screens/account/AccountScreen';
 
-type TabType = 'transactions' | 'accounts' | 'settings';
+type TabType = 'transactions' | 'accounts' | 'stats' | 'settings';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState<TabType>('transactions');
@@ -16,9 +19,9 @@ const App = () => {
       case 'settings':
         return <SettingsScreen />;
       case 'transactions':
-        return (
-          <TransactionsScreen />
-        );
+        return <TransactionsScreen />;
+      case 'stats':
+        return <StatsScreen />;
       case 'accounts':
         return (
           <AccountsScreen />
@@ -28,7 +31,7 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <Header />
       {renderScreen()}
       <BottomBar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -39,7 +42,7 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFF',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,

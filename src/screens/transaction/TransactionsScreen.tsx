@@ -6,7 +6,8 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../constants/colors';
+import { colors } from '../../constants/colors';
+import ActionButtons from '../../components/ActionButtons';
 
 interface Transaction {
   id: string;
@@ -145,6 +146,10 @@ const transactions: Transaction[] = [
   },
 ];
 
+const truncateText = (text: string, maxLength: number) => {
+  return text.length > maxLength ? text.substring(0, maxLength) + '.' : text;
+};
+
 const TransactionsScreen = () => {
   // Group transactions by date
   const groupedTransactions = transactions.reduce((groups: { [key: string]: Transaction[] }, transaction) => {
@@ -197,7 +202,7 @@ const TransactionsScreen = () => {
                 {dailyTransactions.map(transaction => (
                   <View key={transaction.id} style={styles.transactionCard}>
                     <Text style={styles.category}>
-                      {transaction.category}
+                      {truncateText(transaction.category, 10)}
                     </Text>
                     
                     <View style={styles.centerSection}>
@@ -221,11 +226,19 @@ const TransactionsScreen = () => {
             );
         })}
       </ScrollView>
+      <ActionButtons />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  category: {
+    width: '25%',
+    fontSize: 13, // Smaller font size
+    fontWeight: '500',
+    color: colors.text,
+    marginRight: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
