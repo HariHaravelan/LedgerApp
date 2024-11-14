@@ -1,36 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AddAccountScreen from './AddAccountScreen';
+import { colors } from '../constants/colors';
 
 const SettingsScreen = () => {
+  const [isAddAccountVisible, setIsAddAccountVisible] = useState(false);
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingContent}>
-            <Icon name="wallet-outline" size={24} color="#2E5BFF" />
-            <Text style={styles.settingText}>Add Account</Text>
-          </View>
-          <Icon name="chevron-forward" size={20} color="#8E8E93" />
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+    <>
+      <ScrollView style={styles.container}>
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => setIsAddAccountVisible(true)}
+          >
+            <View style={styles.settingContent}>
+              <Icon name="wallet-outline" size={24} color={colors.primary} />
+              <Text style={styles.settingText}>Add Account</Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={colors.textLight} />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      <Modal
+        visible={isAddAccountVisible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <AddAccountScreen onClose={() => setIsAddAccountVisible(false)} />
+      </Modal>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFF',
+    backgroundColor: colors.background,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     marginTop: 20,
     marginHorizontal: 16,
     borderRadius: 12,
@@ -54,7 +72,7 @@ const styles = StyleSheet.create({
   settingText: {
     fontSize: 16,
     marginLeft: 12,
-    color: '#2D3142',
+    color: colors.text,
   },
 });
 

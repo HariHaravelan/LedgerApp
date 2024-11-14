@@ -1,3 +1,4 @@
+// AddAccountScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -5,113 +6,227 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
-import { colors } from '../constants/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { colors } from '../constants/colors';
 
-type AccountType = 'bank' | 'cash' | 'credit' | 'investment';
-
-interface AccountTypeOption {
-  type: AccountType;
-  icon: string;
-  label: string;
+interface AddAccountScreenProps {
+  onClose: () => void;
 }
 
-const accountTypes: AccountTypeOption[] = [
-  { type: 'bank', icon: 'business-outline', label: 'Bank' },
-  { type: 'cash', icon: 'cash-outline', label: 'Cash' },
-  { type: 'credit', icon: 'card-outline', label: 'Credit' },
-  { type: 'investment', icon: 'trending-up-outline', label: 'Investment' },
-];
+type AccountType = 'bank' | 'investment' | 'credit';
+type BankAccountType = 'savings' | 'current' | 'fd' | 'rd';
 
-export const AddAccountScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const [selectedType, setSelectedType] = useState<AccountType>('bank');
-  const [accountName, setAccountName] = useState('');
-  const [balance, setBalance] = useState('');
+const AccountTypeButton: React.FC<{
+  type: AccountType;
+  selected: boolean;
+  onSelect: (type: AccountType) => void;
+  label: string;
+}> = ({ type, selected, onSelect, label }) => (
+  <TouchableOpacity
+    style={[styles.typeButton, selected && styles.selectedTypeButton]}
+    onPress={() => onSelect(type)}
+  >
+    <Icon 
+      name={
+        type === 'bank' 
+          ? 'wallet-outline' 
+          : type === 'investment' 
+            ? 'trending-up-outline'
+            : 'card-outline'
+      } 
+      size={20} 
+      color={selected ? colors.white : colors.text}
+      style={styles.typeIcon}
+    />
+    <Text style={[styles.typeButtonText, selected && styles.selectedTypeButtonText]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
+  const [accountType, setAccountType] = useState<AccountType>('bank');
+  
+  // Bank Account fields
+  const [bankName, setBankName] = useState('');
+  const [bankBalance, setBankBalance] = useState('');
+  const [bankAccountType, setBankAccountType] = useState<BankAccountType>('savings');
+  
+  // Credit Card fields
+  const [cardName, setCardName] = useState('');
+  const [outstandingAmount, setOutstandingAmount] = useState('');
+  
+  // Investment fields
+  const [investmentName, setInvestmentName] = useState('');
+  const [investedAmount, setInvestedAmount] = useState('');
 
   const handleSave = () => {
-    // Handle saving account
-    navigation.goBack();
+    let accountData = {};
+    
+    switch (accountType) {
+      case 'bank':
+        accountData = {
+          type: 'bank',
+          name: bankName,
+          balance: parseFloat(bankBalance) || 0,
+          accountType: bankAccountType,
+        };
+        break;
+      case 'credit':
+        accountData = {
+          type: 'credit',
+          name: cardName,
+          outstandingAmount: parseFloat(outstandingAmount) || 0,
+        };
+        break;
+      case 'investment':
+        accountData = {
+          type: 'investment',
+          name: investmentName,
+          amountInvested: parseFloat(investedAmount) || 0,
+        };
+        break;
+    }
+    
+    console.log('Saving account:', accountData);
+    onClose();
+  };
+
+  const renderInputField = (
+    label: string,
+    value: string,
+    onChangeText: (text: string) => void,
+    keyboardType: 'default' | 'numeric' = 'default',
+    placeholder: string = ''
+  ) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label} *</Text>
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textLight}
+      />
+    </View>
+  );
+
+  const renderBankFields = () => (
+    <>
+      {renderInputField('Account Name', bankName, setBankName, 'default', 'Enter account name')}
+      {renderInputField('Balance', bankBalance, setBankBalance, 'numeric', '0.00')}
+      
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Account Type *</Text>
+        <View style={styles.accountTypeContainer}>
+          {(['savings', 'current', 'fd', 'rd'] as BankAccountType[]).map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.accountTypeButton,
+                bankAccountType === type && styles.selectedAccountTypeButton
+              ]}
+              onPress={() => setBankAccountType(type)}
+            >
+              <Text style={[
+                styles.accountTypeText,
+                bankAccountType === type && styles.selectedAccountTypeText
+              ]}>
+                {type.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </>
+  );
+
+  const renderCreditFields = () => (
+    <>
+      {renderInputField('Name', cardName, setCardName, 'default', 'Enter card name')}
+      {renderInputField('Outstanding Unbilled', outstandingAmount, setOutstandingAmount, 'numeric', '0.00')}
+    </>
+  );
+
+  const renderInvestmentFields = () => (
+    <>
+      {renderInputField('Name', investmentName, setInvestmentName, 'default', 'Enter investment name')}
+      {renderInputField('Amount Invested', investedAmount, setInvestedAmount, 'numeric', '0.00')}
+    </>
+  );
+
+  const isFormValid = () => {
+    switch (accountType) {
+      case 'bank':
+        return bankName && bankBalance;
+      case 'credit':
+        return cardName && outstandingAmount;
+      case 'investment':
+        return investmentName && investedAmount;
+      default:
+        return false;
+    }
   };
 
   return (
     <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView style={styles.scrollView}>
-        {/* Account Type Selector */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Type</Text>
-          <View style={styles.typeContainer}>
-            {accountTypes.map((type) => (
-              <TouchableOpacity
-                key={type.type}
-                style={[
-                  styles.typeOption,
-                  selectedType === type.type && styles.selectedType,
-                ]}
-                onPress={() => setSelectedType(type.type)}
-              >
-                <Icon
-                  name={type.icon}
-                  size={24}
-                  color={selectedType === type.type ? colors.white : colors.text}
-                />
-                <Text
-                  style={[
-                    styles.typeLabel,
-                    selectedType === type.type && styles.selectedTypeLabel,
-                  ]}
-                >
-                  {type.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Account Details */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Details</Text>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Account Name</Text>
-            <TextInput
-              style={styles.input}
-              value={accountName}
-              onChangeText={setAccountName}
-              placeholder="Enter account name"
-              placeholderTextColor={colors.textLight}
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Initial Balance</Text>
-            <TextInput
-              style={styles.input}
-              value={balance}
-              onChangeText={setBalance}
-              placeholder="0.00"
-              keyboardType="decimal-pad"
-              placeholderTextColor={colors.textLight}
-            />
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Save Button */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Icon name="close" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Add Account</Text>
+        <TouchableOpacity 
+          onPress={handleSave} 
           style={styles.saveButton}
-          onPress={handleSave}
+          disabled={!isFormValid()}
         >
-          <Text style={styles.saveButtonText}>Save Account</Text>
+          <Text style={[styles.saveButtonText, !isFormValid() && styles.saveButtonDisabled]}>
+            Save
+          </Text>
         </TouchableOpacity>
       </View>
+      
+      <ScrollView style={styles.content}>
+        <View style={styles.card}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Account Type</Text>
+            <View style={styles.typeButtonsContainer}>
+              <AccountTypeButton
+                type="bank"
+                selected={accountType === 'bank'}
+                onSelect={setAccountType}
+                label="Bank Account"
+              />
+              <AccountTypeButton
+                type="credit"
+                selected={accountType === 'credit'}
+                onSelect={setAccountType}
+                label="Credit Card"
+              />
+              <AccountTypeButton
+                type="investment"
+                selected={accountType === 'investment'}
+                onSelect={setAccountType}
+                label="Investment"
+              />
+            </View>
+          </View>
+
+          {accountType === 'bank' && renderBankFields()}
+          {accountType === 'credit' && renderCreditFields()}
+          {accountType === 'investment' && renderInvestmentFields()}
+        </View>
+
+        <Text style={styles.requiredText}>* Required fields</Text>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -121,50 +236,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textLight,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  typeContainer: {
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 8,
-  },
-  typeOption: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  selectedType: {
-    backgroundColor: colors.gradientStart,
-  },
-  typeLabel: {
-    marginTop: 4,
-    fontSize: 12,
+  headerText: {
+    fontSize: 18,
+    fontWeight: '600',
     color: colors.text,
   },
-  selectedTypeLabel: {
-    color: colors.white,
+  closeButton: {
+    padding: 8,
   },
-  inputContainer: {
+  saveButton: {
+    padding: 8,
+  },
+  saveButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  card: {
     backgroundColor: colors.white,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  inputGroup: {
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
@@ -174,25 +289,74 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     color: colors.text,
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  buttonContainer: {
-    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
     backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
-  saveButton: {
-    backgroundColor: colors.gradientStart,
-    padding: 16,
-    borderRadius: 12,
+  typeButtonsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  typeButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    marginBottom: 8,
   },
-  saveButtonText: {
+  typeIcon: {
+    marginRight: 6,
+  },
+  selectedTypeButton: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  typeButtonText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  selectedTypeButtonText: {
     color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+  },
+  accountTypeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  accountTypeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+  },
+  selectedAccountTypeButton: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  accountTypeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  selectedAccountTypeText: {
+    color: colors.white,
+  },
+  requiredText: {
+    color: colors.textLight,
+    fontSize: 12,
+    marginTop: 8,
+    marginLeft: 4,
   },
 });
+
+export default AddAccountScreen;
