@@ -31,8 +31,8 @@ const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabChange }) => {
       ]}>
         <Icon
           name={activeTab === tab ? icon : `${icon}-outline`}
-          size={24}
-          color={activeTab === tab ? colors.primary : colors.textLight}
+          size={22}  // Reduced from 24
+          color={activeTab === tab ? colors.primary : colors.textSecondary}
         />
       </View>
       <Text style={[
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    shadowColor: '#000',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
@@ -94,19 +94,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconContainer: {
-    width: 48,
-    height: 48,
+    width: 44,  // Reduced from 48
+    height: 44, // Reduced from 48
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 24,
-    marginBottom: 2,
+    borderRadius: 22,
   },
   activeIconContainer: {
     backgroundColor: `${colors.primary}10`,
   },
   tabLabel: {
-    fontSize: 12,
-    color: colors.textLight,
+    fontSize: 11,  // Reduced from 12
+    color: colors.textSecondary,
     marginTop: 2,
   },
   activeTabLabel: {

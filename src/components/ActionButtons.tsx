@@ -8,6 +8,7 @@ import {
   Dimensions,
   Platform,
   PermissionsAndroid,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Voice, {
@@ -16,6 +17,7 @@ import Voice, {
 } from '@react-native-voice/voice';
 import { colors } from '../constants/colors';
 import TranscriptionOverlay from './audio/TranscriptionOverlay';
+import AddTransactionScreen from '../screens/transaction/AddTransactionScreen';
 
 const ActionButtons = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -23,7 +25,7 @@ const ActionButtons = () => {
   const [showOverlay, setShowOverlay] = useState(false);
   const [error, setError] = useState('');
   const [isStopping, setIsStopping] = useState(false);
-  
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
   const pulseAnim = new Animated.Value(1);
   const screenWidth = Dimensions.get('window').width;
   const silenceTimer = useRef<number | null>(null);
@@ -222,7 +224,7 @@ const ActionButtons = () => {
   };
 
   const handleAddTransaction = () => {
-    console.log('Add transaction clicked');
+    setShowAddTransaction(true);
   };
 
   const handleOverlayClose = async () => {
@@ -301,7 +303,13 @@ const ActionButtons = () => {
           </View>
         </View>
       </View>
-
+      <Modal
+        visible={showAddTransaction}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <AddTransactionScreen onClose={() => setShowAddTransaction(false)} />
+      </Modal>
       <TranscriptionOverlay
         visible={showOverlay}
         text={transcribedText}
