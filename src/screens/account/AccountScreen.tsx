@@ -6,167 +6,198 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 
-// Types
+type AccountType = 'bank' | 'wallet' | 'card' | 'loan' | 'investment';
+type InvestmentType = 'fd' | 'rd' | 'stocks' | 'mutual_funds' | 'gold';
+
 interface Account {
   id: string;
   name: string;
+  type: AccountType;
   balance: number;
-  type: 'bank' | 'card' | 'investment';
-  subtype?: string;
-  institution?: string;
+  institution: string;
+  investmentType?: InvestmentType;
   lastSync?: string;
-  color?: string;
 }
 
-// Sample data with enhanced details
+// Sample data aligned with AddAccountScreen structure
 const accounts: Account[] = [
-  { 
-    id: '1', 
+  // Bank Accounts
+  {
+    id: '1',
+    type: 'bank',
     name: 'HDFC Savings',
     balance: 25000,
-    type: 'bank',
-    subtype: 'savings',
     institution: 'HDFC Bank',
     lastSync: '2024-03-16T10:30:00',
-    color: '#ff0000'
   },
-  { 
-    id: '2', 
-    name: 'SBI Current', 
-    balance: 45000, 
-    type: 'bank', 
-    subtype: 'current',
+  {
+    id: '2',
+    type: 'bank',
+    name: 'SBI Savings',
+    balance: 45000,
     institution: 'State Bank of India',
     lastSync: '2024-03-16T09:15:00',
-    color: '#2E5BFF'
   },
-  { 
-    id: '3', 
-    name: 'ICICI FD', 
-    balance: 100000, 
-    type: 'bank', 
-    subtype: 'fd',
-    institution: 'ICICI Bank',
-    lastSync: '2024-03-15T18:20:00',
-    color: '#F6A609'
+  
+  // Wallets
+  {
+    id: '3',
+    type: 'wallet',
+    name: 'Paytm Wallet',
+    balance: 2500,
+    institution: 'Paytm',
+    lastSync: '2024-03-16T11:00:00',
   },
-  { 
-    id: '4', 
-    name: 'HDFC Credit Card', 
-    balance: -15000, 
+  {
+    id: '4',
+    type: 'wallet',
+    name: 'Amazon Pay',
+    balance: 1500,
+    institution: 'Amazon',
+    lastSync: '2024-03-16T10:45:00',
+  },
+  
+  // Credit Cards
+  {
+    id: '5',
     type: 'card',
+    name: 'HDFC Credit Card',
+    balance: -15000,
     institution: 'HDFC Bank',
     lastSync: '2024-03-16T11:00:00',
-    color: '#10B981'
   },
-  { 
-    id: '5', 
-    name: 'Amazon Pay Card', 
-    balance: -5000, 
+  {
+    id: '6',
     type: 'card',
+    name: 'Amazon Pay Card',
+    balance: -5000,
     institution: 'ICICI Bank',
     lastSync: '2024-03-16T10:45:00',
-    color: '#EC4899'
   },
-  { 
-    id: '6', 
-    name: 'Mutual Funds', 
-    balance: 50000, 
+
+  // Loans
+  {
+    id: '7',
+    type: 'loan',
+    name: 'Home Loan',
+    balance: -2500000,
+    institution: 'HDFC Bank',
+    lastSync: '2024-03-16T09:30:00',
+  },
+  {
+    id: '8',
+    type: 'loan',
+    name: 'Car Loan',
+    balance: -500000,
+    institution: 'ICICI Bank',
+    lastSync: '2024-03-16T09:30:00',
+  },
+  
+  // Investments
+  {
+    id: '9',
     type: 'investment',
+    name: 'HDFC FD',
+    balance: 100000,
+    institution: 'HDFC Bank',
+    investmentType: 'fd',
+    lastSync: '2024-03-15T18:20:00',
+  },
+  {
+    id: '10',
+    type: 'investment',
+    name: 'Post Office RD',
+    balance: 50000,
+    institution: 'Post Office',
+    investmentType: 'rd',
+    lastSync: '2024-03-15T18:20:00',
+  },
+  {
+    id: '11',
+    type: 'investment',
+    name: 'Mutual Funds',
+    balance: 7500000,
     institution: 'Groww',
+    investmentType: 'mutual_funds',
     lastSync: '2024-03-16T09:30:00',
-    color: '#8B5CF6'
   },
-  { 
-    id: '7', 
-    name: 'Stocks', 
-    balance: 75000, 
+  {
+    id: '12',
     type: 'investment',
+    name: 'Stocks Portfolio',
+    balance: 125000,
     institution: 'Zerodha',
+    investmentType: 'stocks',
     lastSync: '2024-03-16T09:30:00',
-    color: '#6366F1'
   },
 ];
 
-const AccountsScreen = () => {
-  // Helper function to format amount
-  const formatAmount = (amount: number): string => {
-    const isNegative = amount < 0;
-    const absAmount = Math.abs(amount);
-    
-    let numStr = absAmount.toString();
-    let lastThree = numStr.substring(numStr.length - 3);
-    let otherNumbers = numStr.substring(0, numStr.length - 3);
-    if (otherNumbers !== '') {
-      lastThree = ',' + lastThree;
-    }
-    const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
 
-    return `${isNegative ? '-' : ''}₹${formatted}`;
-  };
+const getAccountGroupConfig = (type: AccountType): { icon: string; title: string } => {
+  switch (type) {
+    case 'bank':
+      return { icon: 'business-outline', title: 'Bank Accounts' };
+    case 'wallet':
+      return { icon: 'wallet-outline', title: 'Wallets' };
+    case 'card':
+      return { icon: 'card-outline', title: 'Cards' };
+    case 'loan':
+      return { icon: 'cash-outline', title: 'Loans' };
+    case 'investment':
+      return { icon: 'trending-up-outline', title: 'Investments' };
+    default:
+      return { icon: 'help-outline', title: 'Other' };
+  }
+};
 
-  // Helper function to format last sync time
-  const formatLastSync = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.round(diffMs / 60000);
-    
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    } else if (diffMins < 1440) {
-      return `${Math.floor(diffMins / 60)}h ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
-  const AccountCard: React.FC<{ account: Account }> = ({ account }) => (
-    <TouchableOpacity style={styles.accountCard}>
-      <View style={styles.accountHeader}>
-        <View style={styles.accountInfo}>
-          <Text style={styles.accountName}>{account.name}</Text>
-          <Text style={styles.institutionName}>{account.institution}</Text>
-        </View>
-        <Icon name="chevron-forward" size={20} color={colors.textLight} />
-      </View>
-      
-      <View style={styles.accountFooter}>
-        <View style={styles.accountBalance}>
-          <Text style={[
-            styles.balanceAmount,
-            account.balance < 0 && styles.negativeBalance
-          ]}>
-            {formatAmount(account.balance)}
-          </Text>
-          {account.subtype && (
-            <View style={styles.accountType}>
-              <Text style={styles.accountTypeText}>
-                {account.subtype.toUpperCase()}
-              </Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.lastSync}>
-          Updated {formatLastSync(account.lastSync || '')}
+const AccountCard: React.FC<{ account: Account }> = ({ account }) => (
+  <TouchableOpacity style={styles.accountCard}>
+    <View style={styles.accountMain}>
+      <View style={styles.accountInfo}>
+        <Text style={styles.accountName}>
+          {account.name}
+          
         </Text>
       </View>
-    </TouchableOpacity>
-  );
-  
 
+      <View style={styles.balanceContainer}>
+        <Text style={[
+          styles.balanceAmount,
+          account.balance < 0 && styles.negativeBalance
+        ]}>
+          {formatAmount(account.balance)}
+        </Text>
+        <Icon name="chevron-forward" size={20} color={colors.textLight} />
+      </View>
+    </View>
+  </TouchableOpacity>
+);
+
+const formatAmount = (amount: number): string => {
+  const isNegative = amount < 0;
+  const absAmount = Math.abs(amount);
+  const formatted = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(absAmount);
+  
+  return isNegative ? `-${formatted}` : formatted;
+};
+
+const AccountsScreen = () => {
   // Function to render account groups
-  const renderAccountGroup = (title: string, type: Account['type'], icon: string) => {
+  const renderAccountGroup = (title: string, type: AccountType, icon: string) => {
     const groupAccounts = accounts.filter(account => account.type === type);
     const totalBalance = groupAccounts.reduce((sum, account) => sum + account.balance, 0);
-  
+
     if (groupAccounts.length === 0) return null;
-  
+
     return (
       <View style={styles.groupContainer}>
         <View style={styles.groupHeader}>
@@ -181,7 +212,7 @@ const AccountsScreen = () => {
           </View>
           <Text style={styles.groupTotal}>{formatAmount(totalBalance)}</Text>
         </View>
-  
+
         {groupAccounts.map((account, index) => (
           <View key={account.id}>
             <AccountCard account={account} />
@@ -225,11 +256,13 @@ const AccountsScreen = () => {
 
       <ScrollView 
         style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {renderAccountGroup('Bank Accounts', 'bank', 'wallet-outline')}
-        {renderAccountGroup('Credit Cards', 'card', 'card-outline')}
-        {renderAccountGroup('Investments', 'investment', 'trending-up-outline')}
+        {['bank', 'wallet', 'card', 'loan', 'investment'].map((type) => {
+          const config = getAccountGroupConfig(type as AccountType);
+          return renderAccountGroup(config.title, type as AccountType, config.icon);
+        })}
       </ScrollView>
     </View>
   );
@@ -240,7 +273,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  /**/
+  summaryCard: {
+    backgroundColor: colors.primary,
+    width: '100%',
+    padding: 20,
+    paddingBottom: 24,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: colors.white,
+    opacity: 0.9,
+    marginBottom: 4,
+  },
+  summaryAmount: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.white,
+    marginBottom: 16,
+  },
+  summaryDetails: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginHorizontal: 12,
+  },
+  summaryItemLabel: {
+    fontSize: 12,
+    color: colors.white,
+    opacity: 0.9,
+    marginBottom: 4,
+  },
+  summaryItemAmount: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.white,
+  },
   groupContainer: {
     marginBottom: 16,
     backgroundColor: colors.white,
@@ -302,127 +378,45 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: colors.white,
   },
-  accountHeader: {
+  accountMain: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
   accountInfo: {
     flex: 1,
   },
   accountName: {
     fontSize: 15,
-    fontWeight: '500',
     color: colors.text,
-    marginBottom: 2,
   },
-  institutionName: {
+  accountType: {
     fontSize: 13,
     color: colors.textLight,
-    fontWeight: 'normal',
   },
-  accountFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  accountBalance: {
+  balanceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   balanceAmount: {
     fontSize: 15,
-    fontWeight: '500',
     color: colors.text,
   },
   negativeBalance: {
     color: '#EF4444',
-  },
-  accountType: {
-    backgroundColor: `${colors.primary}15`,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-  accountTypeText: {
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '500',
   },
   accountDivider: {
     height: 1,
     backgroundColor: colors.border,
     marginHorizontal: 16,
   },
-  lastSync: {
-    fontSize: 12,
-    color: colors.textLight,
-    fontWeight: 'normal',
-  },
-  summaryAmount: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.white,
-    marginBottom: 16,
-  },
-  summaryItemAmount: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.white,
-  },
-  summaryLabel: {
-    fontSize: 13,
-    color: colors.white,
-    opacity: 0.9,
-    marginBottom: 4,
-    fontWeight: 'normal',
-  },
-  summaryItemLabel: {
-    fontSize: 12,
-    color: colors.white,
-    opacity: 0.9,
-    marginBottom: 4,
-    fontWeight: 'normal',
-  },
-  summaryCard: {
-    backgroundColor: colors.primary,
-    width: '100%',
-    padding: 20,
-    paddingBottom: 24,
-  },
-  
-  summaryDetails: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 12,
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryDivider: {
-    width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    marginHorizontal: 12,
-  },
-  
   scrollView: {
     flex: 1,
+    paddingTop: 16, // Add some padding at the top
   },
-  accountMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  accountIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  scrollContent: {
+    paddingBottom: 24, // Add padding at the bottom for better scroll experience
   },
 });
 
