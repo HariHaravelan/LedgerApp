@@ -14,10 +14,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Voice, {
   SpeechResultsEvent,
   SpeechErrorEvent,
+  SpeechStartEvent,
+  SpeechEndEvent,
 } from '@react-native-voice/voice';
 import { colors } from '../constants/colors';
 import TranscriptionOverlay from './audio/TranscriptionOverlay';
 import AddTransactionScreen from '../screens/transaction/AddTransactionScreen';
+import { delay } from '../utils/time';
 
 const ActionButtons = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -30,27 +33,122 @@ const ActionButtons = () => {
   const screenWidth = Dimensions.get('window').width;
   const silenceTimer = useRef<number | null>(null);
   const SILENCE_TIMEOUT = 2000;
+  const MIN_RECORDING_DURATION = 500; 
 
+  // Add these new refs to track state
+  const isInitialized = useRef(false);
+  const isProcessing = useRef(false);
+  const lastStartTime = useRef(0);
+  const listenerSetup = useRef(false);
   useEffect(() => {
-    const setupVoice = async () => {
+    // If listeners are already set up, skip
+    if (listenerSetup.current) {
+      console.log('Listeners already set up, skipping');
+      return;
+    }
+
+    console.log('Setting up Voice listeners');
+    
+    const setupListeners = async () => {
       try {
+        // First destroy any existing instance
         await Voice.destroy();
-        Voice.onSpeechStart = onSpeechStart;
-        Voice.onSpeechEnd = onSpeechEnd;
-        Voice.onSpeechResults = onSpeechResults;
-        Voice.onSpeechError = onSpeechError;
-        Voice.onSpeechPartialResults = onSpeechPartialResults;
-      } catch (e) {
-        console.error('Error setting up Voice:', e);
+        // Remove all existing listeners
+        await Voice.removeAllListeners();
+        
+        // Create the event handler references
+        const speechStartHandler = (e: SpeechStartEvent) => {
+          console.log('Speech started event');
+          if (!isProcessing.current) {
+            setIsRecording(true);
+            stopSilenceTimer();
+          }
+        };
+
+        const speechEndHandler = (e: SpeechEndEvent) => {
+          console.log('Speech ended event');
+          if (isRecording) {
+            startSilenceTimer();
+          }
+        };
+
+        const speechResultsHandler = (e: SpeechResultsEvent) => {
+          if (e.value && e.value[0]) {
+            setTranscribedText(e.value[0]);
+          }
+        };
+        
+        const speechErrorHandler = (e: SpeechErrorEvent) => {
+          console.log('Speech error:', e);
+          const errorMessage = e.error?.message || 'Error occurred';
+          
+          // Don't restart on common errors
+          if (errorMessage.includes('7/No match') || 
+              errorMessage.includes('11/Didn\'t understand')) {
+            // These are normal "no speech detected" errors, ignore them
+            return;
+          }
+          
+          if (errorMessage.includes('5/Client side error')) {
+            // Only attempt restart if we're still supposed to be recording
+            if (isRecording) {
+              console.log('Attempting single restart of voice recognition');
+              Voice.destroy()
+                .then(() => {
+                  startVoiceRecording();
+                })
+                .catch((err) => {
+                  console.error('Error restarting voice recognition:', err);
+                  setError('Please try again');
+                  setIsRecording(false);
+                  stopVoiceRecording();
+                });
+            }
+          } else {
+            // For other errors, stop recording
+            setError(errorMessage);
+            setIsRecording(false);
+            stopVoiceRecording();
+          }
+        };
+        
+
+        const speechPartialResultsHandler = (e: SpeechResultsEvent) => {
+          if (e.value && e.value[0]) {
+            setTranscribedText(e.value[0]);
+            stopSilenceTimer();
+            startSilenceTimer();
+          }
+        };
+
+        // Set up new listeners
+        Voice.onSpeechStart = speechStartHandler;
+        Voice.onSpeechEnd = speechEndHandler;
+        Voice.onSpeechResults = speechResultsHandler;
+        Voice.onSpeechError = speechErrorHandler;
+        Voice.onSpeechPartialResults = speechPartialResultsHandler;
+
+        listenerSetup.current = true;
+      } catch (error) {
+        console.error('Error setting up voice listeners:', error);
       }
     };
 
-    setupVoice();
+    setupListeners();
+
+    // Cleanup function
     return () => {
-      stopSilenceTimer();
-      Voice.destroy().then(Voice.removeAllListeners);
+      console.log('Cleaning up Voice listeners');
+      listenerSetup.current = false;
+      Voice.destroy()
+        .then(() => Voice.removeAllListeners())
+        .catch(console.error);
     };
   }, []);
+
+  useEffect(() => {
+    console.log('Recording state changed:', isRecording);
+  }, [isRecording]);
 
   const startSilenceTimer = () => {
     stopSilenceTimer();
@@ -77,55 +175,6 @@ const ActionButtons = () => {
       console.error('Error in graceful stop:', e);
     } finally {
       setIsStopping(false);
-    }
-  };
-
-
-  const onSpeechStart = () => {
-    console.log('Speech started');
-    setIsRecording(true);
-    setIsStopping(false);
-    stopSilenceTimer();
-  };
-
-  const onSpeechEnd = async () => {
-    console.log('Speech ended');
-    if (!isStopping) {
-      await handleGracefulStop(); // Handle the stop properly when speech ends
-    }
-  };
-
-  const onSpeechPartialResults = (e: SpeechResultsEvent) => {
-    if (e.value && e.value[0]) {
-      setTranscribedText(e.value[0]);
-      if (!isStopping) {
-        stopSilenceTimer();
-        startSilenceTimer();
-      }
-    }
-  };
-
-  const onSpeechResults = (e: SpeechResultsEvent) => {
-    if (e.value && e.value[0]) {
-      setTranscribedText(e.value[0]);
-    }
-  };
-
-  const onSpeechError = (e: SpeechErrorEvent) => {
-    console.log('Speech error:', e);
-    const errorMessage = e.error?.message || 'Error occurred';
-    
-    // Ignore client side error if we're intentionally stopping
-    if (errorMessage.includes('5/Client side error') && isStopping) {
-      console.log('Ignoring expected client side error during stop');
-      return;
-    }
-
-    // Handle other errors
-    if (!errorMessage.includes('7/No match') && 
-        !errorMessage.includes('11/Didn\'t understand')) {
-      setError(errorMessage);
-      setIsRecording(false);
     }
   };
 
@@ -177,11 +226,16 @@ const ActionButtons = () => {
     }
   };
 
-  const startVoiceRecording = async () => {
+  const startVoiceRecording = async (retryCount = 0) => {
+    if (isProcessing.current) {
+      console.log('Already processing, skipping start');
+      return;
+    }
+    
     try {
+      isProcessing.current = true;
       setError('');
       setTranscribedText('');
-      setIsStopping(false);
       
       const hasPermission = await requestMicrophonePermission();
       if (!hasPermission) {
@@ -189,29 +243,38 @@ const ActionButtons = () => {
         return;
       }
 
+      // Set overlay state before starting voice
       setShowOverlay(true);
+      // Wait for overlay to be shown
+      await delay(100);
       
-      // Make sure Voice is destroyed before starting
-      await Voice.destroy();
+      lastStartTime.current = Date.now();
       await Voice.start('en-US');
       startSilenceTimer();
     } catch (e) {
       console.error('Error starting voice:', e);
+      if (retryCount < 2) {
+        await delay(1000);
+        isProcessing.current = false;
+        return startVoiceRecording(retryCount + 1);
+      }
       setError('Please try again');
       setIsRecording(false);
+      setShowOverlay(false); // Make sure to hide overlay on error
+    } finally {
+      isProcessing.current = false;
     }
   };
 
   const stopVoiceRecording = async () => {
-    console.log('Stopping voice recording');
     try {
       stopSilenceTimer();
+      setIsRecording(false); // Set this first to prevent restart loops
       await Voice.stop();
-      setIsRecording(false); // Ensure this runs after Voice.stop()
+      console.log('Voice recording stopped successfully');
     } catch (e) {
       console.error('Error stopping voice:', e);
       setError('Error stopping voice recognition');
-      setIsRecording(false);
     }
   };
 
@@ -219,6 +282,7 @@ const ActionButtons = () => {
     if (isRecording) {
       await stopVoiceRecording();
     } else {
+      setError(''); // Clear any previous errors
       await startVoiceRecording();
     }
   };
@@ -228,44 +292,19 @@ const ActionButtons = () => {
   };
 
   const handleOverlayClose = async () => {
-    try {
-      setIsStopping(true);
-      if (isRecording) {
-        await stopVoiceRecording();
-      }
-      setShowOverlay(false);
-      setTranscribedText('');
-      setError('');
-      setIsRecording(false);
-    } catch (e) {
-      console.error('Error in handleOverlayClose:', e);
-      setShowOverlay(false);
-      setTranscribedText('');
-      setError('');
-      setIsRecording(false);
-    } finally {
-      setIsStopping(false);
-    }
+    console.log('Overlay closing');
+    await stopVoiceRecording();
+    setShowOverlay(false);
+    setTranscribedText('');
+    setError('');
   };
 
   const handleOverlayConfirm = async () => {
-    try {
-      setIsStopping(true);
-      console.log('Processing transcribed text:', transcribedText);
-      if (isRecording) {
-        await stopVoiceRecording();
-      }
-      setShowOverlay(false);
-      setTranscribedText('');
-      setIsRecording(false);
-    } catch (e) {
-      console.error('Error in handleOverlayConfirm:', e);
-      setShowOverlay(false);
-      setTranscribedText('');
-      setIsRecording(false);
-    } finally {
-      setIsStopping(false);
-    }
+    console.log('Overlay confirming');
+    await stopVoiceRecording();
+    console.log('Processing transcribed text:', transcribedText);
+    setShowOverlay(false);
+    setTranscribedText('');
   };
 
   return (
@@ -310,14 +349,15 @@ const ActionButtons = () => {
       >
         <AddTransactionScreen onClose={() => setShowAddTransaction(false)} />
       </Modal>
-      <TranscriptionOverlay
-        visible={showOverlay}
-        text={transcribedText}
-        onClose={handleOverlayClose}
-        onConfirm={handleOverlayConfirm}
-        error={error}
-        isRecording={isRecording}
-      />
+     <TranscriptionOverlay
+  visible={showOverlay}
+  text={transcribedText}
+  onClose={handleOverlayClose}
+  onConfirm={handleOverlayConfirm}
+  onStop={stopVoiceRecording}  // Add this line
+  error={error}
+  isRecording={isRecording}
+/>
     </>
   );
 };

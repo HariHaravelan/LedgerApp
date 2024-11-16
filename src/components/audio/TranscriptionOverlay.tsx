@@ -18,6 +18,7 @@ interface TranscriptionOverlayProps {
   isRecording: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onStop: () => void;
 }
 
 const TranscriptionOverlay: React.FC<TranscriptionOverlayProps> = ({
@@ -27,42 +28,34 @@ const TranscriptionOverlay: React.FC<TranscriptionOverlayProps> = ({
   isRecording,
   onClose,
   onConfirm,
+  onStop,
 }) => {
-  const handleConfirm = () => {
-    if (!text || error) return;
-    onConfirm();
-  };
-
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleOverlayPress = () => {
-    handleClose();
-  };
-
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleClose}
+      onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
+      <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
               <View style={styles.header}>
                 <Text style={styles.title}>Voice Input</Text>
-                <TouchableOpacity onPress={handleClose}>
+                <TouchableOpacity onPress={onClose}>
                   <Icon name="close-outline" size={24} color={colors.textLight} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.waveContainer}>
-                <WaveIndicator isRecording={isRecording} />
-                {isRecording && (
-                  <Text style={styles.listeningText}>Listening...</Text>
+                {visible && (
+                  <>
+                    <WaveIndicator isRecording={isRecording} />
+                    {isRecording && (
+                      <Text style={styles.listeningText}>Listening...</Text>
+                    )}
+                  </>
                 )}
               </View>
 
@@ -71,7 +64,7 @@ const TranscriptionOverlay: React.FC<TranscriptionOverlayProps> = ({
                   <Text style={styles.errorText}>{error}</Text>
                 ) : (
                   <Text style={styles.transcriptionText}>
-                    {text || (isRecording ? 'Speak now...' : 'Press the mic button to start')}
+                    {text || 'Speak now...'}
                   </Text>
                 )}
               </View>
@@ -79,27 +72,32 @@ const TranscriptionOverlay: React.FC<TranscriptionOverlayProps> = ({
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity
                   style={[styles.button, styles.cancelButton]}
-                  onPress={handleClose}
+                  onPress={onClose}
                 >
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.button, 
-                    styles.confirmButton,
-                    (!text || !!error) && styles.confirmButtonDisabled
-                  ]}
-                  onPress={handleConfirm}
-                  disabled={!text || !!error}
-                >
-                  <Text style={[
-                    styles.buttonText, 
-                    styles.confirmButtonText,
-                    (!text || !!error) && styles.confirmButtonTextDisabled
-                  ]}>
-                    Confirm
-                  </Text>
-                </TouchableOpacity>
+
+                {isRecording ? (
+                  <TouchableOpacity
+                    style={[styles.button, styles.stopButton]}
+                    onPress={onStop}
+                  >
+                    <Icon name="stop-circle" size={20} color={colors.white} />
+                    <Text style={[styles.buttonText, styles.stopButtonText]}>
+                      Stop
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.button, styles.confirmButton]}
+                    onPress={onConfirm}
+                    disabled={!text || !!error}
+                  >
+                    <Text style={[styles.buttonText, styles.confirmButtonText]}>
+                      Confirm
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -108,7 +106,6 @@ const TranscriptionOverlay: React.FC<TranscriptionOverlayProps> = ({
     </Modal>
   );
 };
-
 
 const styles = StyleSheet.create({
   modalOverlay: {
@@ -177,6 +174,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minWidth: 100,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   cancelButton: {
     backgroundColor: colors.background,
@@ -184,8 +184,8 @@ const styles = StyleSheet.create({
   confirmButton: {
     backgroundColor: colors.primary,
   },
-  confirmButtonDisabled: {
-    backgroundColor: colors.border,
+  stopButton: {
+    backgroundColor: '#DC2626',
   },
   buttonText: {
     fontSize: 16,
@@ -195,8 +195,8 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: colors.white,
   },
-  confirmButtonTextDisabled: {
-    color: colors.textLight,
+  stopButtonText: {
+    color: colors.white,
   },
 });
 

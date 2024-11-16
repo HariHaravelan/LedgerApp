@@ -1,11 +1,13 @@
-// src/screens/TransactionsScreen.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
+  Platform,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import ActionButtons from '../../components/ActionButtons';
 
@@ -29,7 +31,6 @@ const formatDate = (date: string): string => {
   });
 };
 
-// Helper function for amount formatting
 const formatAmount = (amount: number): string => {
   const isNegative = amount < 0;
   const absAmount = Math.abs(amount);
@@ -175,10 +176,72 @@ const TransactionsScreen = () => {
       { income: 0, expense: 0 }
     );
   };
+  
+
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const changeMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+    // Handle month change logic here
+  };
+
+  const formatMonth = (date: Date) => {
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.getFullYear().toString().slice(-2);
+    return `${month} '${year}`;
+  };
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+      {/* Month Navigation and Actions Bar */}
+      <View style={styles.navigationBar}>
+        <View style={styles.monthSelector}>
+          <TouchableOpacity 
+            style={styles.monthNavButton}
+            onPress={() => changeMonth('prev')}
+          >
+            <Icon name="chevron-back" size={20} color={colors.primary} />
+          </TouchableOpacity>
+          
+          <View style={styles.monthTextContainer}>
+            <Text style={styles.monthText}>{formatMonth(currentDate)}</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.monthNavButton}
+            onPress={() => changeMonth('next')}
+          >
+            <Icon name="chevron-forward" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => console.log('Search')}
+          >
+            <Icon name="search-outline" size={18} color={colors.primary} />
+            <Text style={styles.actionButtonText}>Find</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => console.log('Read SMS')}
+          >
+            <Icon name="mail-unread-outline" size={18} color={colors.primary} />
+            <Text style={styles.actionButtonText}>SMS</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Transactions List */}
+         <ScrollView style={styles.scrollView}>
         {Object.keys(groupedTransactions)
           .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
           .map(date => {
@@ -232,16 +295,85 @@ const TransactionsScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  navigationBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  monthSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.background,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  monthNavButton: {
+    padding: 4,
+  },
+  monthTextContainer: {
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  monthText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  actionButtonText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  transactionsList: {
+    flex: 1,
+  },
   category: {
     width: '25%',
     fontSize: 13, // Smaller font size
     fontWeight: '500',
     color: colors.text,
     marginRight: 8,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -275,12 +407,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  category: {
-    width: '25%', // Adjust this value to control category width
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.text,
   },
   centerSection: {
     flex: 1,

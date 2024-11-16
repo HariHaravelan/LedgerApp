@@ -9,108 +9,129 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AddAccountScreen from '../account/AddAccountScreen';
-import ActionButtons from '../../components/ActionButtons';
 import { colors } from '../../constants/colors';
-
-type SettingGroupType = {
-  title: string;
-  items: {
-    icon: string;
-    label: string;
-    onPress: () => void;
-    iconColor?: string;
-  }[];
-};
+import AddCategoryScreen from '../category/AddCategoryScreen';
+import AddAccountScreen from '../account/AddAccountScreen';
 
 const SettingsScreen = () => {
-  const [isAddAccountVisible, setIsAddAccountVisible] = useState(false);
-  const [isEditAccountVisible, setIsEditAccountVisible] = useState(false);
-  const [isAddCategoryVisible, setIsAddCategoryVisible] = useState(false);
-  const [isEditCategoryVisible, setIsEditCategoryVisible] = useState(false);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showAddAccount, setShowAddAccount] = useState(false);
 
-  const settingsGroups: SettingGroupType[] = [
-    {
-      title: 'Account',
-      items: [
-        {
-          icon: 'wallet-outline',
-          label: 'Add Account',
-          onPress: () => setIsAddAccountVisible(true),
-          iconColor: colors.primary,
-        },
-        {
-          icon: 'create-outline',
-          label: 'Edit Account',
-          onPress: () => setIsEditAccountVisible(true),
-          iconColor: colors.primary,
-        },
-      ],
-    },
-    {
-      title: 'Category',
-      items: [
-        {
-          icon: 'pricetag-outline',
-          label: 'Add Category',
-          onPress: () => setIsAddCategoryVisible(true),
-          iconColor: '#10B981', // Green color for category actions
-        },
-        {
-          icon: 'create-outline',
-          label: 'Edit Category',
-          onPress: () => setIsEditCategoryVisible(true),
-          iconColor: '#10B981',
-        },
-      ],
-    },
-  ];
+  const SettingSection: React.FC<{
+    title: string;
+    icon: string;
+    children: React.ReactNode;
+  }> = ({ title, icon, children }) => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Icon name={icon} size={20} color={colors.textLight} />
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      {children}
+    </View>
+  );
+
+  const SettingRow: React.FC<{
+    label: string;
+    onPress?: () => void;
+    showArrow?: boolean;
+    value?: string;
+    icon?: string;
+    iconColor?: string;
+  }> = ({ label, onPress, showArrow = true, value, icon, iconColor }) => (
+    <TouchableOpacity
+      style={styles.settingRow}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <View style={styles.settingLeft}>
+        {icon && (
+          <Icon 
+            name={icon} 
+            size={20} 
+            color={iconColor || colors.textLight} 
+            style={styles.settingIcon}
+          />
+        )}
+        <Text style={styles.settingLabel}>{label}</Text>
+      </View>
+      <View style={styles.settingRight}>
+        {value && <Text style={styles.settingValue}>{value}</Text>}
+        {showArrow && (
+          <Icon name="chevron-forward" size={20} color={colors.textLight} />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <>
-      <ScrollView style={styles.container}>
-        {settingsGroups.map((group, index) => (
-          <View key={group.title} style={[styles.section, index > 0 && styles.sectionMargin]}>
-            <Text style={styles.sectionTitle}>{group.title}</Text>
-            <View style={styles.sectionContent}>
-              {group.items.map((item, itemIndex) => (
-                <TouchableOpacity 
-                  key={item.label}
-                  style={[
-                    styles.settingItem,
-                    itemIndex < group.items.length - 1 && styles.settingItemBorder
-                  ]}
-                  onPress={item.onPress}
-                >
-                  <View style={styles.settingContent}>
-                    <Icon 
-                      name={item.icon} 
-                      size={24} 
-                      color={item.iconColor || colors.primary} 
-                    />
-                    <Text style={styles.settingText}>{item.label}</Text>
-                  </View>
-                  <Icon name="chevron-forward" size={20} color={colors.textLight} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        ))}
+    <View style={styles.container}>
+      <ScrollView>
+        <SettingSection title="Accounts & Categories" icon="wallet">
+          <SettingRow
+            label="Add Account"
+            onPress={() => setShowAddAccount(true)}
+            icon="card-outline"
+            iconColor={colors.primary}
+          />
+          <SettingRow
+            label="Manage Categories"
+            onPress={() => setShowAddCategory(true)}
+            icon="list-outline"
+            iconColor="#10B981"
+          />
+        </SettingSection>
+
+        <SettingSection title="General" icon="settings">
+          <SettingRow label="Notifications" icon="notifications-outline" />
+          <SettingRow label="Currency" value="INR" icon="cash-outline" />
+          <SettingRow label="Language" value="English" icon="language-outline" />
+          <SettingRow label="Date Format" value="DD/MM/YYYY" icon="calendar-outline" />
+        </SettingSection>
+
+        <SettingSection title="Data Management" icon="server">
+          <SettingRow 
+            label="Export Data" 
+            icon="download-outline"
+            iconColor="#3B82F6"
+          />
+          <SettingRow 
+            label="Import Data" 
+            icon="upload-outline"
+            iconColor="#8B5CF6"
+          />
+          <SettingRow 
+            label="Clear All Data" 
+            icon="trash-outline"
+            iconColor="#EF4444"
+          />
+        </SettingSection>
+
+        <SettingSection title="About" icon="information-circle">
+          <SettingRow label="Version" value="1.0.0" showArrow={false} />
+          <SettingRow label="Terms of Service" />
+          <SettingRow label="Privacy Policy" />
+        </SettingSection>
       </ScrollView>
 
-      <ActionButtons />
-
-      {/* Modals */}
+      {/* Add Category Modal */}
       <Modal
-        visible={isAddAccountVisible}
+        visible={showAddCategory}
         animationType="slide"
-        presentationStyle="fullScreen"
+        presentationStyle="pageSheet"
       >
-        <AddAccountScreen onClose={() => setIsAddAccountVisible(false)} />
+        <AddCategoryScreen onClose={() => setShowAddCategory(false)} />
       </Modal>
-      
-      {/* Add other modals as needed */}
-    </>
+
+      {/* Add Account Modal */}
+      <Modal
+        visible={showAddAccount}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <AddAccountScreen onClose={() => setShowAddAccount(false)} />
+      </Modal>
+    </View>
   );
 };
 
@@ -120,47 +141,51 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   section: {
-    marginHorizontal: 16,
-    marginTop: 20,
+    backgroundColor: colors.white,
+    marginBottom: 16,
+    paddingVertical: 8,
   },
-  sectionMargin: {
-    marginTop: 24,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-    paddingLeft: 4,
+    color: colors.textLight,
+    marginLeft: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  sectionContent: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  settingItem: {
+  settingRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: colors.white,
   },
-  settingItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  settingContent: {
+  settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  settingText: {
+  settingIcon: {
+    marginRight: 12,
+  },
+  settingLabel: {
     fontSize: 16,
-    marginLeft: 12,
     color: colors.text,
+  },
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  settingValue: {
+    fontSize: 16,
+    color: colors.textLight,
   },
 });
 
