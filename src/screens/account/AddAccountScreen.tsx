@@ -12,85 +12,13 @@ import {
   Pressable
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { ACCOUNT_SUBTYPES, ACCOUNT_TYPE_OPTIONS } from '../../data/AccountsData';
 
-// Account Types and Constants
-interface DropdownOption {
-  value: string;
-  label: string;
-  icon?: string;
-}
-
-// Account Types and Constants
-const ACCOUNT_TYPE_OPTIONS: DropdownOption[] = [
-  { value: 'bank', label: 'Bank Account', icon: 'business-outline' },
-  { value: 'wallet', label: 'E-Wallet', icon: 'wallet-outline' },
-  { value: 'card', label: 'Cards', icon: 'card-outline' },
-  { value: 'loan', label: 'Loans', icon: 'cash-outline' },
-  { value: 'investment', label: 'Investments', icon: 'trending-up-outline' },
-];
-
-// Create a union type of all possible account type values
-type MainAccountType = 'bank' | 'wallet' | 'card' | 'loan' | 'investment';
-
-const ACCOUNT_SUBTYPES: Record<MainAccountType, DropdownOption[]> = {
-  bank: [
-    { value: 'savings', label: 'Savings' },
-    { value: 'current', label: 'Current' },
-    { value: 'nre', label: 'NRE' },
-    { value: 'nro', label: 'NRO' },
-    { value: 'ppf', label: 'PPF' }
-  ],
-  wallet: [
-    { value: 'paytm', label: 'Paytm' },
-    { value: 'phonepe', label: 'PhonePe' },
-    { value: 'gpay', label: 'Google Pay' },
-    { value: 'amazonpay', label: 'Amazon Pay' },
-    { value: 'other', label: 'Other' }
-  ],
-  card: [
-    { value: 'credit', label: 'Credit Card' },
-    { value: 'food', label: 'Food Card' },
-    { value: 'fuel', label: 'Fuel Card' },
-    { value: 'travel', label: 'Travel Card' },
-    { value: 'other', label: 'Other' }
-  ],
-  loan: [
-    { value: 'personal', label: 'Personal' },
-    { value: 'home', label: 'Home' },
-    { value: 'vehicle', label: 'Vehicle' },
-    { value: 'education', label: 'Education' },
-    { value: 'business', label: 'Business' }
-  ],
-  investment: [
-    { value: 'stocks', label: 'Stocks' },
-    { value: 'mutual_funds', label: 'Mutual Funds' },
-    { value: 'bonds', label: 'Bonds' },
-    { value: 'sgb', label: 'Sovereign Gold' },
-    { value: 'crypto', label: 'Crypto' },
-    { value: 'invoice_discounting', label: 'Invoice Discounting' },
-    { value: 'fd', label: 'Fixed Deposit' },
-    { value: 'rd', label: 'Recurring Deposit' }
-  ]
-};
 
 type AccountSubType = typeof ACCOUNT_SUBTYPES[MainAccountType][number]['value'];
 
 // Custom Dropdown Component
-interface CustomDropdownProps {
-  label: string;
-  selected: string;
-  options: Array<{
-    value: string;
-    label: string;
-    icon?: string;
-  }>;
-  isOpen: boolean;
-  onToggle: () => void;
-  onSelect: (value: string) => void;
-  showIcons?: boolean;
-  dropdownStyle?: object;
-  containerStyle?: object;
-}
+
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({ 
   label, 

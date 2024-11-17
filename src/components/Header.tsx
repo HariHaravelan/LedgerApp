@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({
                 onPress={onClose}
                 style={styles.iconButton}
               >
-                <Icon name="arrow-back" size={22} color={colors.white} />
+                <Icon name="arrow-back" size={20} color={colors.text} />
               </TouchableOpacity>
             )}
           </View>
@@ -43,8 +43,8 @@ const Header: React.FC<HeaderProps> = ({
           <View style={styles.centerSection}>
             <Icon 
               name="wallet-outline" 
-              size={22} 
-              color={colors.white}
+              size={18} 
+              color={colors.text}
               style={styles.titleIcon} 
             />
             <Text style={styles.title}>{title}</Text>
@@ -74,31 +74,22 @@ const Header: React.FC<HeaderProps> = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.white,
   },
   container: {
-    backgroundColor: colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 56,
+    paddingHorizontal: 12,
+    height: 44,
   },
   leftSection: {
-    width: 70,
+    width: 60,
     alignItems: 'flex-start',
   },
   centerSection: {
@@ -106,41 +97,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   rightSection: {
-    width: 70,
+    width: 60,
     alignItems: 'flex-end',
   },
   iconButton: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 18,
+    borderRadius: 16,
+    backgroundColor: `${colors.text}08`,
   },
   titleIcon: {
-    marginRight: 8,
+    marginRight: 6,
   },
   title: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
-    color: colors.white,
+    color: colors.text,
     letterSpacing: 0.5,
   },
   saveButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 14,
+    backgroundColor: `${colors.primary}10`,
   },
   saveButtonDisabled: {
-    opacity: 0.6,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    opacity: 0.5,
   },
   saveButtonText: {
     color: colors.primary,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
 });

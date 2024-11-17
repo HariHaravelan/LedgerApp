@@ -70,7 +70,7 @@ export const ChartTabs: React.FC<ChartTabsProps> = ({
 
 const styles = StyleSheet.create({
     tabContainer: {
-        marginTop: 8,
+        marginTop: 4,
     },
     tabWrapper: {
         flexDirection: 'row',

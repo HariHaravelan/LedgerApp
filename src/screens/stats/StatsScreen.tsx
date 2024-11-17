@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 4,
   }, scrollView: {
     flex: 1,
   },
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: `${colors.primary}10`,
-    paddingVertical: 8,
+    paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 8,
     gap: 6,

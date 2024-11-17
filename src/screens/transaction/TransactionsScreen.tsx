@@ -357,13 +357,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    height: 52, // Fixed height for header
+    height: 40, // Fixed height for header
   },
   monthSummary: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 4,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryText: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.text,
     marginBottom: 2,
   },
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   accountText: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textLight,
     flex: 1,
   },
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
 
   currentMonth: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
     width: 60,
