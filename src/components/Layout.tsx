@@ -1,21 +1,24 @@
+// src/components/Layout.tsx
 import React from 'react';
-import { SafeAreaView, StyleSheet, StatusBar, View } from 'react-native';
+import { View, StatusBar, StyleSheet, Platform } from 'react-native';
 import { colors } from '../constants/colors';
 
-interface LayoutProps {
+export interface LayoutProps {
   children: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout = ({ children }: LayoutProps) => {
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar 
-        translucent 
-        backgroundColor="transparent" 
-        barStyle="light-content" 
+    <>
+      <StatusBar
+        backgroundColor="transparent"
+        barStyle="dark-content"
+        translucent
       />
-      {children}
-    </SafeAreaView>
+      <View style={styles.container}>
+        {children}
+      </View>
+    </>
   );
 };
 

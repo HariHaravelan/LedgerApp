@@ -5,11 +5,13 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  StatusBar,
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import ActionButtons from '../../components/ActionButtons';
+import { Layout } from '../../components/Layout';
 
 interface Transaction {
   id: string;
@@ -20,38 +22,69 @@ interface Transaction {
   amount: number;
   type: 'income' | 'expense';
 }
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
+const formatDate = (dateString: string): { date: string; monthYear: string; day: string } => {
+  const date = new Date(dateString);
+  return {
+    date: date.getDate().toString().padStart(2, '0'),
+    monthYear: date.toLocaleDateString('en-US', {
+      month: 'short',
+      year: '2-digit'
+    }),
+    day: date.toLocaleDateString('en-US', { weekday: 'short' })
+  };
+};
 
-// Helper function for date formatting
-const formatDate = (date: string): string => {
-  const d = new Date(date);
-  return d.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    day: 'numeric',
-    month: 'long'
-  });
+const truncateText = (text: string, maxLength: number) => {
+  return text.length > maxLength ? text.substring(0, maxLength - 2) + '...' : text;
 };
 
 const formatAmount = (amount: number): string => {
-  const isNegative = amount < 0;
   const absAmount = Math.abs(amount);
-  
-  let numStr = absAmount.toString();
-  let lastThree = numStr.substring(numStr.length - 3);
-  let otherNumbers = numStr.substring(0, numStr.length - 3);
-  if (otherNumbers !== '') {
-    lastThree = ',' + lastThree;
-  }
-  const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
-
-  return `${isNegative ? '-' : ''}₹${formatted}`;
+  const formatted = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(absAmount);
+  return `${formatted}`;
 };
 
-// Sample transactions data
+const getMonthlyStatistics = (
+  transactions: Transaction[],
+  selectedDate: Date
+): { income: number; expenses: number; total: number } => {
+  const selectedMonth = selectedDate.getMonth();
+  const selectedYear = selectedDate.getFullYear();
+
+  // Filter transactions for the selected month and year
+  const monthlyTransactions = transactions.filter(transaction => {
+    const txDate = new Date(transaction.date);
+    return txDate.getMonth() === selectedMonth && txDate.getFullYear() === selectedYear;
+  });
+
+  // Calculate totals
+  const stats = monthlyTransactions.reduce(
+    (acc, transaction) => {
+      if (transaction.type === 'income') {
+        acc.income += transaction.amount;
+      } else {
+        acc.expenses += transaction.amount; // Assuming expenses are stored as negative values
+      }
+      return acc;
+    },
+    { total: 0, income: 0, expenses: 0 }
+  );
+
+  // Calculate total (net)
+  stats.total = stats.income + stats.expenses;
+
+  return stats;
+};
+
 const transactions: Transaction[] = [
   // Today
   {
     id: '1',
-    date: '2024-03-14',
+    date: '2024-11-14',
     category: 'Food',
     remarks: 'Lunch with team',
     account: 'HDFC Debit Card',
@@ -60,7 +93,7 @@ const transactions: Transaction[] = [
   },
   {
     id: '2',
-    date: '2024-03-14',
+    date: '2024-11-14',
     category: 'Shopping',
     remarks: 'Groceries',
     account: 'Amazon Pay',
@@ -70,7 +103,7 @@ const transactions: Transaction[] = [
   // Yesterday
   {
     id: '3',
-    date: '2024-03-13',
+    date: '2024-11-13',
     category: 'Salary',
     remarks: 'Monthly Salary',
     account: 'HDFC Savings',
@@ -79,7 +112,7 @@ const transactions: Transaction[] = [
   },
   {
     id: '4',
-    date: '2024-03-13',
+    date: '2024-11-13',
     category: 'Bills',
     remarks: 'Electricity Bill',
     account: 'SBI Credit Card',
@@ -89,7 +122,7 @@ const transactions: Transaction[] = [
   // 2 days ago
   {
     id: '5',
-    date: '2024-03-12',
+    date: '2024-11-12',
     category: 'Transport',
     remarks: 'Uber to Office',
     account: 'Paytm Wallet',
@@ -98,7 +131,7 @@ const transactions: Transaction[] = [
   },
   {
     id: '6',
-    date: '2024-03-12',
+    date: '2024-11-12',
     category: 'Entertainment',
     remarks: 'Movie Tickets',
     account: 'HDFC Credit Card',
@@ -108,7 +141,7 @@ const transactions: Transaction[] = [
   // 3 days ago
   {
     id: '7',
-    date: '2024-03-11',
+    date: '2024-11-12',
     category: 'Investment',
     remarks: 'Mutual Fund SIP',
     account: 'ICICI Savings',
@@ -118,7 +151,7 @@ const transactions: Transaction[] = [
   // 4 days ago
   {
     id: '8',
-    date: '2024-03-10',
+    date: '2024-11-12',
     category: 'Shopping',
     remarks: 'Amazon Purchase',
     account: 'Amazon Pay Card',
@@ -128,7 +161,7 @@ const transactions: Transaction[] = [
   // 5 days ago
   {
     id: '9',
-    date: '2024-03-09',
+    date: '2024-11-11',
     category: 'Food',
     remarks: 'Dinner with Family',
     account: 'HDFC Credit Card',
@@ -138,7 +171,7 @@ const transactions: Transaction[] = [
   // 6 days ago
   {
     id: '10',
-    date: '2024-03-08',
+    date: '2024-11-10',
     category: 'Rent',
     remarks: 'Monthly Rent',
     account: 'HDFC Savings',
@@ -147,12 +180,9 @@ const transactions: Transaction[] = [
   },
 ];
 
-const truncateText = (text: string, maxLength: number) => {
-  return text.length > maxLength ? text.substring(0, maxLength) + '.' : text;
-};
-
 const TransactionsScreen = () => {
-  // Group transactions by date
+  const [currentDate, setCurrentDate] = useState(new Date());
+
   const groupedTransactions = transactions.reduce((groups: { [key: string]: Transaction[] }, transaction) => {
     const date = transaction.date;
     if (!groups[date]) {
@@ -162,23 +192,19 @@ const TransactionsScreen = () => {
     return groups;
   }, {});
 
-  // Calculate daily totals
   const getDailyTotals = (transactions: Transaction[]) => {
     return transactions.reduce(
       (totals, transaction) => {
         if (transaction.type === 'income') {
           totals.income += transaction.amount;
         } else {
-          totals.expense += Math.abs(transaction.amount);
+          totals.expense += transaction.amount; // Keep negative value
         }
         return totals;
       },
       { income: 0, expense: 0 }
     );
   };
-  
-
-  const [currentDate, setCurrentDate] = useState(new Date());
 
   const changeMonth = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
@@ -188,7 +214,6 @@ const TransactionsScreen = () => {
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setCurrentDate(newDate);
-    // Handle month change logic here
   };
 
   const formatMonth = (date: Date) => {
@@ -197,244 +222,321 @@ const TransactionsScreen = () => {
     return `${month} '${year}`;
   };
 
+  const { income: monthlyIncome, expenses: monthlyExpenses, total: monthlyTotal } =
+    getMonthlyStatistics(transactions, currentDate);
+
   return (
-    <View style={styles.container}>
-      {/* Month Navigation and Actions Bar */}
-      <View style={styles.navigationBar}>
-        <View style={styles.monthSelector}>
-          <TouchableOpacity 
-            style={styles.monthNavButton}
-            onPress={() => changeMonth('prev')}
-          >
-            <Icon name="chevron-back" size={20} color={colors.primary} />
-          </TouchableOpacity>
-          
-          <View style={styles.monthTextContainer}>
-            <Text style={styles.monthText}>{formatMonth(currentDate)}</Text>
+   
+          <View style={styles.container}>
+          <View style={styles.header}>
+          <View style={styles.monthSelector}>
+            <TouchableOpacity onPress={() => changeMonth('prev')}>
+              <Text style={styles.monthSelectorArrow}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.currentMonth}>{formatMonth(currentDate)}</Text>
+            <TouchableOpacity onPress={() => changeMonth('next')}>
+              <Text style={styles.monthSelectorArrow}>→</Text>
+            </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity 
-            style={styles.monthNavButton}
-            onPress={() => changeMonth('next')}
-          >
-            <Icon name="chevron-forward" size={20} color={colors.primary} />
-          </TouchableOpacity>
+
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.actionButton}>
+              <Icon name="search-outline" size={18} color={colors.text} />
+              <Text style={styles.actionText}>Find</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Icon name="mail-unread-outline" size={18} color={colors.text} />
+              <Text style={styles.actionText}>SMS</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => console.log('Search')}
-          >
-            <Icon name="search-outline" size={18} color={colors.primary} />
-            <Text style={styles.actionButtonText}>Find</Text>
-          </TouchableOpacity>
+        
+        <View style={styles.monthSummary}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Income</Text>
+            <Text style={[styles.summaryText, styles.incomeText]}>
+              {formatAmount(monthlyIncome)}
+            </Text>
 
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => console.log('Read SMS')}
-          >
-            <Icon name="mail-unread-outline" size={18} color={colors.primary} />
-            <Text style={styles.actionButtonText}>SMS</Text>
-          </TouchableOpacity>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Expenses</Text>
+            <Text style={[styles.summaryText, styles.expenseText]}>
+              {formatAmount(monthlyExpenses)}
+            </Text>
+
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Total</Text>
+            <Text style={[
+              styles.summaryText,
+              monthlyTotal >= 0 ? styles.incomeText : styles.expenseText
+            ]}>
+              {formatAmount(monthlyTotal)}
+            </Text>
+
+          </View>
         </View>
-      </View>
 
-      {/* Transactions List */}
-         <ScrollView style={styles.scrollView}>
-        {Object.keys(groupedTransactions)
-          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-          .map(date => {
-            const dailyTransactions = groupedTransactions[date];
-            const { income, expense } = getDailyTotals(dailyTransactions);
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {Object.keys(groupedTransactions)
+            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+            .map((date, index) => {
+              const dailyTransactions = groupedTransactions[date];
+              const { income, expense } = getDailyTotals(dailyTransactions);
+              const formattedDate = formatDate(date);
 
-            return (
-              <View key={date} style={styles.dateGroup}>
-                <View style={styles.dateHeader}>
-                  <Text style={styles.dateText}>{formatDate(date)}</Text>
-                  <View style={styles.dailyTotals}>
-                    {income > 0 && (
-                      <Text style={styles.incomeText}>+{formatAmount(income)}</Text>
-                    )}
-                    {expense > 0 && (
-                      <Text style={styles.expenseText}>-{formatAmount(expense)}</Text>
-                    )}
-                  </View>
-                </View>
-
-                {dailyTransactions.map(transaction => (
-                  <View key={transaction.id} style={styles.transactionCard}>
-                    <Text style={styles.category}>
-                      {truncateText(transaction.category, 10)}
-                    </Text>
-                    
-                    <View style={styles.centerSection}>
-                      <Text style={styles.remarks}>
-                        {transaction.remarks}
-                      </Text>
-                      <Text style={styles.account}>
-                        {transaction.account}
-                      </Text>
+              return (
+                <View key={date} style={styles.section}>
+                  <View style={styles.dateHeader}>
+                    <View style={styles.dateInfo}>
+                      <Text style={styles.dateNumber}>{formattedDate.date}</Text>
+                      <View style={styles.dateMetadata}>
+                        <Text style={styles.dateMonth}>{formattedDate.monthYear}</Text>
+                        <Text style={styles.dateDay}>{formattedDate.day}</Text>
+                      </View>
                     </View>
 
-                    <Text style={[
-                      styles.amount,
-                      transaction.type === 'income' ? styles.incomeText : styles.expenseText
-                    ]}>
-                      {formatAmount(transaction.amount)}
-                    </Text>
+                    <View style={styles.dayTotals}>
+                      {income > 0 && (
+                        <Text style={styles.incomeText}>{formatAmount(income)}</Text>
+                      )}
+                      {expense < 0 && (
+                        <Text style={styles.expenseText}>{formatAmount(expense)}</Text>
+                      )}
+                    </View>
                   </View>
-                ))}
-              </View>
-            );
-        })}
-      </ScrollView>
-      <ActionButtons />
-    </View>
+
+                  <View style={styles.transactionsList}>
+                    {dailyTransactions.map((tx) => (
+                      <TouchableOpacity
+                        key={tx.id}
+                        style={styles.transactionRow}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.transactionContent}>
+                          <View style={styles.categoryContainer}>
+                            <Text numberOfLines={1} style={styles.categoryText}>
+                              {truncateText(tx.category, 12)}
+                            </Text>
+                          </View>
+                          <Text numberOfLines={1} style={styles.accountText}>
+                            {truncateText(tx.account, 15)}
+                          </Text>
+                          <Text style={[
+                            styles.amountText,
+                            tx.type === 'income' ? styles.incomeText : styles.expenseText
+                          ]}>
+                            {formatAmount(tx.amount)}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+        </ScrollView>
+        <ActionButtons />
+        </View>
+
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  navigationBar: {
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    height: 52, // Fixed height for header
   },
-  monthSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.background,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  monthNavButton: {
-    padding: 4,
-  },
-  monthTextContainer: {
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  monthText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  actionButtonText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  transactionsList: {
-    flex: 1,
-  },
-  category: {
-    width: '25%',
-    fontSize: 13, // Smaller font size
-    fontWeight: '500',
-    color: colors.text,
-    marginRight: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  dateGroup: {
-    marginBottom: 8,
-  },
-  dateHeader: {
+  monthSummary: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: colors.background,
-  },
-  dateText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  dailyTotals: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  transactionCard: {
+    paddingVertical: 8,
     backgroundColor: colors.white,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
-  centerSection: {
+  summaryItem: {
+    alignItems: 'center',
     flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 8,
   },
-  remarks: {
-    fontSize: 15,
+  summaryText: {
+    fontSize: 14,
     color: colors.text,
-    textAlign: 'center',
+    marginBottom: 2,
   },
-  account: {
+  summaryLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  amount: {
-    width: '25%', // Adjust this value to control amount width
-    fontSize: 15,
-    fontWeight: '600',
-    textAlign: 'right',
+    color: colors.textLight,
   },
   incomeText: {
     color: '#10B981',
   },
   expenseText: {
-    color: colors.error,
+    color: '#EF4444',
+  },
+  monthSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  monthSelectorArrow: {
+    fontSize: 18,
+    color: colors.primary,
+    paddingHorizontal: 8,
+  },
+  dateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: `${colors.primary}05`,
+  },
+  dateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  dateNumber: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    width: 24,
+    textAlign: 'center',
+  },
+  dateMetadata: {
+    justifyContent: 'center',
+  },
+  dateMonth: {
+    fontSize: 11,
+    color: colors.textLight,
+    lineHeight: 13,
+  },
+  dateDay: {
+    fontSize: 11,
+    color: colors.textLight,
+    lineHeight: 13,
+  },
+  dayTotals: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  transactionsList: {
+    backgroundColor: colors.white,
+  },
+  transactionRow: {
+    paddingVertical: 8,  // Increased padding for better spacing
+    paddingHorizontal: 12,
+    backgroundColor: colors.white,
+  },
+  transactionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18, // Added gap between elements
+  },
+  categoryContainer: {
+    width: 100, // Fixed width for category
+  },
+  categoryText: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: colors.text,
+  },
+  accountText: {
+    fontSize: 13,
+    color: colors.textLight,
+    flex: 1,
+  },
+  amountText: {
+    fontSize: 13,
+    fontWeight: '500',
+    width: 90, // Fixed width for amount
+    textAlign: 'right',
+  },
+
+  currentMonth: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    width: 60,
+    textAlign: 'center',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionText: {
+    fontSize: 13,
+    color: colors.text,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  section: {
+    marginBottom: 1,
+    backgroundColor: colors.white,
+  },
+  daySummary: {
+    marginTop: 2,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+
+  summaryAmount: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  mainInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  secondaryInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  remarkText: {
+    fontSize: 11,
+    color: colors.textLight,
+  },
+  totalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  totalLabel: {
+    fontSize: 11,
+    color: colors.textLight,
+    fontWeight: '500',
+  },
+  totalAmount: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 
