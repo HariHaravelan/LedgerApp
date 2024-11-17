@@ -97,7 +97,7 @@ const SettingsScreen = () => {
           />
           <SettingRow 
             label="Import Data" 
-            icon="upload-outline"
+            icon="cloud-upload-outline"
             iconColor="#8B5CF6"
           />
           <SettingRow 

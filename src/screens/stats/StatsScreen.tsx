@@ -1,5 +1,5 @@
 // src/screens/StatsScreen.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Modal,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
@@ -178,6 +179,16 @@ const StatsScreen: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('monthly');
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
+  const [tabAnimation] = useState(new Animated.Value(0));
+  const [tabContainerWidth, setTabContainerWidth] = useState(0);
+
+  useEffect(() => {
+    Animated.timing(tabAnimation, {
+      toValue: activeChart === 'income' ? 0 : 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [activeChart]);
 
   const formatAmount = (amount: number): string => {
     const absAmount = Math.abs(amount);
@@ -242,86 +253,120 @@ const StatsScreen: React.FC = () => {
       </View>
     );
   };
-
-  // Update the renderPieChart function
-const renderPieChart = () => {
-  const data = activeChart === 'income' ? incomeData : expenseData;
-  const total = getTotal(data);
+  const renderTabs = () => {
+    const translateX = tabAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, tabContainerWidth / 2], // Use actual pixel values
+    });
   
-  const chartData = data.map(item => ({
-    name: item.name,
-    value: item.value,
-    color: item.color,
-  }));
-
-  return (
-    <View style={styles.chartContainer}>
-      <View style={styles.chartContent}>
-        <View style={styles.chartSection}>
-          <PieChart
-            data={chartData}
-            totalAmount={formatAmount(total)}
-            label={`Total ${activeChart}`}
+    return (
+      <View 
+        style={styles.tabContainer}
+        onLayout={(e) => setTabContainerWidth(e.nativeEvent.layout.width)}
+      >
+        <View style={styles.tabWrapper}>
+          <TouchableOpacity
+            style={[styles.tab, activeChart === 'income' && styles.activeTab]}
+            onPress={() => setActiveChart('income')}
+          >
+            <Text style={[
+              styles.tabText,
+              activeChart === 'income' && styles.activeTabText
+            ]}>
+              Income
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.tab, activeChart === 'expense' && styles.activeTab]}
+            onPress={() => setActiveChart('expense')}
+          >
+            <Text style={[
+              styles.tabText,
+              activeChart === 'expense' && styles.activeTabText
+            ]}>
+              Expense
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.tabIndicatorContainer}>
+          <Animated.View 
+            style={[
+              styles.tabIndicator,
+              {
+                transform: [{ translateX }],
+                width: tabContainerWidth / 2,
+              }
+            ]} 
           />
         </View>
+      </View>
+    );
+  };
 
-        <View style={styles.legendContainer}>
-          {data.map((item, index) => (
-            <View key={item.name} style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-              <View style={styles.legendTextSection}>
-                <Text style={styles.legendLabel} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <View style={styles.legendValues}>
-                  <Text style={styles.legendPercentage}>
-                    {((item.value / total) * 100).toFixed(0)}%
+  // Update the renderPieChart function
+  const renderPieChart = () => {
+    const data = activeChart === 'income' ? incomeData : expenseData;
+    const total = getTotal(data);
+
+    const chartData = data.map(item => ({
+      name: item.name,
+      value: item.value,
+      color: item.color,
+    }));
+
+    return (
+      <View style={styles.chartContainer}>
+        <View style={styles.chartContent}>
+          <View style={styles.chartSection}>
+            <PieChart
+              data={chartData}
+              totalAmount={formatAmount(total)}
+              label={`Total ${activeChart}`}
+            />
+          </View>
+
+          <View style={styles.legendContainer}>
+            {data.map((item, index) => (
+              <View key={item.name} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                <View style={styles.legendTextSection}>
+                  <Text style={styles.legendLabel} numberOfLines={1}>
+                    {item.name}
                   </Text>
+                  <View style={styles.legendValues}>
+                    <Text style={styles.legendPercentage}>
+                      {((item.value / total) * 100).toFixed(0)}%
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            ))}
+          </View>
         </View>
+
+        {/* Total row at the bottom */}
+        <View style={styles.divider} />
       </View>
-      
-      {/* Total row at the bottom */}
-      <View style={styles.divider} />
-      <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total {activeChart}</Text>
-        <Text style={styles.totalAmount}>{formatAmount(total)}</Text>
-      </View>
-    </View>
-  );
-};
+    );
+  };
 
   const renderTransactionRow = (item: TransactionData) => (
     <View key={item.name} style={styles.row}>
       <View style={styles.rowLeft}>
         <View style={[styles.colorDot, { backgroundColor: item.color }]} />
-        <Text style={styles.rowName}>{item.name}</Text>
-      </View>
-
-      <View style={styles.rowRight}>
-        <Text style={styles.rowAmount}>{formatAmount(item.value)}</Text>
-        <Text style={styles.rowPercentage}>
-          {((item.value / getTotal(activeChart === 'income' ? incomeData : expenseData)) * 100).toFixed(1)}%
+        <Text style={styles.rowName} numberOfLines={1}>
+          {item.name}
         </Text>
-        <View style={[
-          styles.trendBadge,
-          { backgroundColor: item.trend > 0 ? '#10B98110' : item.trend < 0 ? '#EF444410' : '#94A3B810' }
-        ]}>
-          <Icon
-            name={item.trend > 0 ? 'trending-up' : item.trend < 0 ? 'trending-down' : 'remove'}
-            size={12}
-            color={item.trend > 0 ? '#10B981' : item.trend < 0 ? '#EF4444' : '#94A3B8'}
-          />
-          <Text style={[
-            styles.trendText,
-            { color: item.trend > 0 ? '#10B981' : item.trend < 0 ? '#EF4444' : '#94A3B8' }
-          ]}>
-            {Math.abs(item.trend)}%
-          </Text>
-        </View>
+      </View>
+      
+      <View style={styles.rowRight}>
+        <Text style={styles.rowAmount} numberOfLines={1}>
+          {formatAmount(item.value)}
+        </Text>
+        <Text style={styles.rowPercentage}>
+          {((item.value / getTotal(activeChart === 'income' ? incomeData : expenseData)) * 100).toFixed(0)}%
+        </Text>
       </View>
     </View>
   );
@@ -351,32 +396,10 @@ const renderPieChart = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.chartSelector}>
-          <TouchableOpacity
-            style={[styles.selectorButton, activeChart === 'income' && styles.selectorButtonActive]}
-            onPress={() => setActiveChart('income')}
-          >
-            <Text style={[styles.selectorText, activeChart === 'income' && styles.selectorTextActive]}>
-              Income
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.selectorButton, activeChart === 'expense' && styles.selectorButtonActive]}
-            onPress={() => setActiveChart('expense')}
-          >
-            <Text style={[styles.selectorText, activeChart === 'expense' && styles.selectorTextActive]}>
-              Expense
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <PeriodDropdown
-          visible={showPeriodDropdown}
-          onClose={() => setShowPeriodDropdown(false)}
-          onSelect={setSelectedPeriod}
-          selectedPeriod={selectedPeriod}
-        />
+        {renderTabs()}
       </View>
+
+
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -406,6 +429,117 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0, // Important for text truncation
+    marginRight: 12,
+  },
+  colorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 8,
+    flexShrink: 0, // Prevent dot from shrinking
+  },
+  rowName: {
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '500',
+    flex: 1,
+    minWidth: 0, // Important for text truncation
+  },
+  rowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0, // Prevent right section from shrinking
+    gap: 12,
+    width: 140, // Fixed width for the right section
+    justifyContent: 'flex-end',
+  },
+  rowAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'right',
+    width: 90, // Fixed width for amount
+  },
+  rowPercentage: {
+    fontSize: 12,
+    color: colors.textLight,
+    width: 35, // Fixed width for percentage
+    textAlign: 'right',
+  },
+  tabContainer: {
+    marginTop: 8,
+  },
+  tabWrapper: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    backgroundColor: 'transparent',
+  },
+  activeTab: {
+    backgroundColor: 'transparent',
+  },
+  tabIcon: {
+    marginRight: 8,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textLight,
+  },
+  activeTabText: {
+    color: colors.primary,
+  },
+  tabIndicatorContainer: {
+    height: 2,
+    backgroundColor: colors.border,
+    position: 'relative',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    width: '50%',
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 1,
+  },
+  tabIndicatorInner: {
+    width: '50%',
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 1,
+  },
+  // Update navigationBar style
+  navigationBar: {
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  navigationTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   chartContainer: {
     backgroundColor: colors.white,
@@ -501,12 +635,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  navigationTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
   },
   monthSelector: {
     flexDirection: 'row',
@@ -624,13 +752,6 @@ const styles = StyleSheet.create({
   periodDropdownIcon: {
     marginLeft: 4,
   },
-  navigationBar: {
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
   periodSelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -676,7 +797,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 0,
     backgroundColor: colors.background,
   },
   sectionTitle: {
@@ -690,47 +811,6 @@ const styles = StyleSheet.create({
   },
   list: {
     backgroundColor: colors.white,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  colorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  rowName: {
-    fontSize: 14,
-    color: colors.text,
-    fontWeight: '500',
-  },
-  rowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowAmount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  rowPercentage: {
-    fontSize: 12,
-    color: colors.textLight,
-    width: 45,
-    textAlign: 'right',
   },
   trendBadge: {
     flexDirection: 'row',
