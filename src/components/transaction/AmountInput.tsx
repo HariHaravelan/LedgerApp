@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
+import { fontStandard } from '../../styles/theme';
 
 interface AmountInputProps {
     value: string;
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
             paddingVertical: 12,
           },
           android: {
-            paddingVertical: 8,
+            paddingVertical: 4,
           },
         }),
       },
@@ -113,26 +114,26 @@ const styles = StyleSheet.create({
       quickAmountContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginTop: 8,
+        marginTop: 4,
         gap: 8,
       },
       quickAmountButton: {
         paddingVertical: 6,
-        paddingHorizontal: 12,
+        paddingHorizontal: 0,
         borderRadius: 16,
         backgroundColor: `${colors.primary}10`,
         borderWidth: 1,
         borderColor: colors.primary,
       },
       quickAmountText: {
-        fontSize: 13,
+        fontSize: fontStandard.fontSize,
         color: colors.primary,
         fontWeight: '500',
       },
     
       // Remarks Input Styles
       remarksContainer: {
-        marginBottom: 16,
+        marginBottom: 8,
       },
       remarksInputContainer: {
         flexDirection: 'row',
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
       },
       remarksInput: {
         flex: 1,
-        fontSize: 16,
+        fontSize: fontStandard.fontSize,
         color: colors.text,
         maxHeight: 100,
         textAlignVertical: 'top',
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
         }),
       },
       charCount: {
-        fontSize: 12,
+        fontSize: fontStandard.fontSize,
         color: colors.textLight,
         textAlign: 'right',
         marginTop: 4,

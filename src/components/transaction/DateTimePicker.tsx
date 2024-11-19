@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
+import { fontStandard } from '../../styles/theme';
 
 interface DateTimePickerProps {
     date: Date;
@@ -40,7 +41,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({ date, onDateChan
     };
 
     const formatTime = (date: Date) => {
-        return date.toLocaleTimeString('en-US', {
+        return date.toLocaleTimeString('en-UK', {
             hour: '2-digit',
             minute: '2-digit',
             hour12: true,
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     dateTimeButton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 16,
+        padding: 6,
         backgroundColor: colors.background,
     },
     dateTimeContent: {
@@ -101,12 +102,12 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     dateText: {
-        fontSize: 15,
+        fontSize: fontStandard.fontSize,
         color: colors.text,
         fontWeight: '500',
     },
     timeText: {
-        fontSize: 15,
+        fontSize: fontStandard.fontSize,
         color: colors.text,
         fontWeight: '500',
     },

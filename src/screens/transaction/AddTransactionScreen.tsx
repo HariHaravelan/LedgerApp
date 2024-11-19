@@ -1,124 +1,116 @@
 // src/screens/AddTransactionScreen.tsx
+
 import React, { useState } from 'react';
 import {
   View,
   Text,
+  StyleSheet,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { themeColors } from '../../constants/colors';
+import TransactionTypeTabs, { TransactionType } from '../../components/transaction/TransactionTypeTabs';
+import ExpenseForm, { ExpenseFormData } from '../../components/forms/ExpenseForm';
+import { ACCOUNTS, CATEGORIES } from '../../data/TransactionData';
+import { IncomeForm } from '../../components/forms/IncomeForm';
+import TransferForm, { TransferFormData } from '../../components/forms/TransferForm';
 
-import { colors } from '../../constants/colors';
-import { DateTimePicker } from '../../components/transaction/DateTimePicker';
-import { TypeSelector } from '../../components/transaction/TypeSelector';
-import { AccountSelector } from '../../components/transaction/AccountSelector';
-import { CategorySelector } from '../../components/transaction/CategorySelector';
-import { CATEGORIES } from '../../data/TransactionData';
-import { AmountInput } from '../../components/transaction/AmountInput';
-import { RemarksInput } from '../../components/transaction/RemarksInput';
-
-interface Props {
+interface AddTransactionScreenProps {
   onClose: () => void;
 }
 
+const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({ onClose }) => {
+  const [transactionType, setTransactionType] = useState<TransactionType>('expense');
+  const [formData, setFormData] = useState<ExpenseFormData>({
+    amount: '',
+    categoryId: '',
+    accountId: '',
+    date: new Date(),
+    remarks: '',
+  });
 
-const ACCOUNTS = [
-  { id: '1', name: 'HDFC Savings', balance: 25000, type: 'bank' },
-  { id: '2', name: 'ICICI Credit Card', balance: -15000, type: 'card' },
-  { id: '3', name: 'Cash Wallet', balance: 5000, type: 'wallet' },
-];
+  const [transferformData, setTransferFormData] = useState<TransferFormData>({
+    amount: '',
+    fromAccountId: '',
+    toAccountId: '',
+    date: new Date(),
+    remarks: ''
+  });
 
-const AddTransactionScreen: React.FC<Props> = ({ onClose }) => {
-  const [type, setType] = useState<'expense' | 'income'>('expense');
-  const [date, setDate] = useState(new Date());
-  const [selectedAccount, setSelectedAccount] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [amount, setAmount] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [accountId, setAccountId] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const handleSave = (shouldContinue: boolean = false) => {
+    // Handle save logic here
+    if (!shouldContinue) {
+      onClose();
+    }
+  };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.headerButton}
           onPress={onClose}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Icon name="close" size={24} color={colors.text} />
+          <Text style={styles.headerButton}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Transaction</Text>
-        <TouchableOpacity
-          style={[styles.saveButton, !amount && styles.saveButtonDisabled]}
-          disabled={!amount}
-          onPress={() => {
-            // Handle save logic
-            console.log({
-              type,
-              date,
-              account: selectedAccount,
-              category: selectedCategory,
-              amount,
-              remarks
-            });
-            onClose();
-          }}
-        >
-          <Text style={[styles.saveButtonText, !amount && styles.saveButtonTextDisabled]}>
-            Save
-          </Text>
-        </TouchableOpacity>
+        <View style={{ width: 50 }} />
       </View>
 
-      <ScrollView style={styles.content}>
-        <TypeSelector
-          selected={type}
-          onSelect={setType}
-        />
-        <DateTimePicker
-          date={date}
-          onDateChange={setDate}
-        />
+      {/* Content */}
+      <TransactionTypeTabs
+        selectedType={transactionType}
+        onTypeChange={setTransactionType}
+      />
 
-        <View style={styles.form}>
-          <AccountSelector
-            accounts={ACCOUNTS}
-            selectedId={accountId}
-            onSelect={setAccountId}
-          />
-          <CategorySelector
-            categories={CATEGORIES.filter(c => c.type === type)}
-            selectedId={categoryId}
-            onSelect={setCategoryId}
-          />
-          <AmountInput
-            value={amount}
-            onChange={setAmount}
-          />
-          <RemarksInput
-            value={remarks}
-            onChange={setRemarks}
-          />
-        </View>
-      </ScrollView>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.content}
+      >
+        <ScrollView bounces={false}>
+          {transactionType === 'expense' && (
+            <ExpenseForm
+              data={formData}
+              onChange={setFormData}
+              categories={CATEGORIES}
+              accounts={ACCOUNTS}
+              onSave={() => {/* handle save */ }}
+              onSaveAndContinue={() => {/* handle save and continue */ }}
+            />
+          )}
+
+          {transactionType === 'income' && (
+            <IncomeForm
+              data={formData}
+              onChange={setFormData}
+              categories={CATEGORIES} // Pass income-specific categories
+              accounts={ACCOUNTS}
+              onSave={() => {/* handle save */ }}
+              onSaveAndContinue={() => {/* handle save and continue */ }}
+            />
+          )}
+          {transactionType === 'transfer' && (
+            <TransferForm
+              data={transferformData}
+              onChange={setTransferFormData}
+              accounts={ACCOUNTS}
+              onSave={() => {/* handle save */ }}
+              onSaveAndContinue={() => {/* handle save and continue */ }}
+            />
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
-  },
-  saveButtonText: {
-    color: colors.white,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  saveButtonTextDisabled: {
-    color: colors.textLight,
+    backgroundColor: themeColors.white,
   },
   content: {
     flex: 1,
@@ -127,30 +119,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    height: 56,
+    paddingHorizontal: 16,
+    backgroundColor: themeColors.white,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerButton: {
-    padding: 4,
+    borderBottomColor: themeColors.border,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    color: colors.text,
+    color: themeColors.text,
+    letterSpacing: 0.1,
+  },
+  headerButton: {
+    fontSize: 16,
+    color: themeColors.primary,
+    fontWeight: '500',
+  },
+  bottomButtons: {
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    borderTopWidth: 1,
+    borderTopColor: themeColors.border,
+    backgroundColor: themeColors.white,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  button: {
+    flex: 1, // Makes buttons take equal width
+    height: 48,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: themeColors.primary,
   },
-  saveButtonDisabled: {
-    backgroundColor: colors.border,
+  continueButton: {
+    backgroundColor: `${themeColors.primary}20`,
   },
-  form: {
-    padding: 16,
-    gap: 16,
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: themeColors.white,
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: themeColors.primary,
   },
 });
 

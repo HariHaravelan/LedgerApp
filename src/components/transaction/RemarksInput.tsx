@@ -31,7 +31,7 @@ export const RemarksInput: React.FC<RemarksInputProps> = ({ value, onChange }) =
                     placeholderTextColor={colors.textLight}
                     multiline
                     numberOfLines={Platform.OS === 'ios' ? undefined : 3}
-                    maxLength={100}
+                    maxLength={50}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     selectionColor={colors.primary}
@@ -45,9 +45,7 @@ export const RemarksInput: React.FC<RemarksInputProps> = ({ value, onChange }) =
                     </TouchableOpacity>
                 )}
             </View>
-            <Text style={styles.charCount}>
-                {value.length}/100
-            </Text>
+        
         </View>
     );
 };
@@ -69,12 +67,6 @@ const styles = StyleSheet.create({
     inputContainerFocused: {
         borderColor: colors.primary,
         backgroundColor: colors.white,
-    },
-    currencySymbol: {
-        fontSize: 24,
-        color: colors.text,
-        fontWeight: '500',
-        marginRight: 8,
     },
     input: {
         flex: 1,
@@ -139,7 +131,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         color: colors.text,
-        maxHeight: 100,
+        maxHeight: 50,
         textAlignVertical: 'top',
         ...Platform.select({
             ios: {

@@ -24,3 +24,14 @@ export const colors = {
   
   white: '#FFFFFF'       // Pure white
 };
+
+export const themeColors = {
+  primary: '#1E3A8A',       // Dark blue
+  primaryLight: '#2563EB',  // Lighter blue for hover/active states
+  primaryFaded: '#1E3A8A20', // Used for inactive or disabled states
+  text: '#1E293B',         // Dark text
+  textLight: '#64748B',    // Light text
+  white: '#FFFFFF',        // White
+  border: '#E2E8F0',       // Light border
+  success: '#38A169',
+};
