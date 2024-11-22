@@ -197,10 +197,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButton: {
-    backgroundColor: colors.success,
+    backgroundColor: colors.primary,
   },
   continueButton: {
-    backgroundColor: `${colors.success}10`,
+    backgroundColor: `${colors.primary}10`,
   },
   saveButtonText: {
     fontSize: 14,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.success,
+    color: colors.primary,
   },
 });
 

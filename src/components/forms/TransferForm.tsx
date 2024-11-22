@@ -205,7 +205,6 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
-    borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.white,
     ...Platform.select({

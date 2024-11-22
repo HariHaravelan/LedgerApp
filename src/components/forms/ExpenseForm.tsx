@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: themeColors.primary,
   },
   continueButton: {
-    backgroundColor: `${themeColors.success}10`,
+    backgroundColor: `${themeColors.primary}10`,
   },
   saveButtonText: {
     fontSize: 14,
