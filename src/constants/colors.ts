@@ -34,4 +34,5 @@ export const themeColors = {
   white: '#FFFFFF',        // White
   border: '#E2E8F0',       // Light border
   success: '#38A169',
+  error: '#E53E3E', 
 };

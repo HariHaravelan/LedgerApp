@@ -1,6 +1,6 @@
 // src/screens/AddTransactionScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  BackHandler,
 } from 'react-native';
 import { themeColors } from '../../constants/colors';
 import TransactionTypeTabs, { TransactionType } from '../../components/transaction/TransactionTypeTabs';
@@ -25,8 +26,8 @@ const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({ onClose }) 
   const [transactionType, setTransactionType] = useState<TransactionType>('expense');
   const [formData, setFormData] = useState<ExpenseFormData>({
     amount: '',
-    categoryId: '',
-    accountId: '',
+    category: '',
+    account: '',
     date: new Date(),
     remarks: '',
   });
@@ -45,6 +46,16 @@ const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({ onClose }) 
       onClose();
     }
   };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      console.log("here");
+      onClose();
+      return true; // Prevents default back behavior
+    });
+
+    return () => backHandler.remove();
+  }, [onClose]);
 
   return (
     <View style={styles.container}>

@@ -20,8 +20,8 @@ import { RemarksInput } from '../transaction/RemarksInput';
 
 export interface ExpenseFormData {
   amount: string;
-  categoryId: string;
-  accountId: string;
+  category: string;
+  account: string;
   date: Date;
   remarks: string;
 }
@@ -60,8 +60,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         <View style={styles.inputContainer}>
           <CategorySelector
             categories={categories}
-            selectedId={data.categoryId}
-            onSelect={(id) => onChange({ ...data, categoryId: id })} />
+            selectedId={data.category}
+            onSelect={(id) => onChange({ ...data, category: id })} />
         </View>
       </View>
 
@@ -71,8 +71,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         <View style={styles.inputContainer}>
           <AccountSelector
             accounts={accounts}
-            selectedId={data.accountId}
-            onSelect={(id) => onChange({ ...data, accountId: id })} />
+            selectedId={data.account}
+            onSelect={(id) => onChange({ ...data, account: id })} />
         </View>
       </View>
 

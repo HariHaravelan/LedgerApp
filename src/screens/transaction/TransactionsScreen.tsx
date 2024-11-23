@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,18 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Modal,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import ActionButtons from '../../components/ActionButtons';
 import { Layout } from '../../components/Layout';
+import { Transaction } from '../../types/Transaction';
+import { transactions } from '../../data/TransactionData';
+import AddTransactionScreen from './AddTransactionScreen';
+import EditTransactionScreen from './EditTransactionScreen';
 
-interface Transaction {
-  id: string;
-  date: string;
-  category: string;
-  remarks: string;
-  account: string;
-  amount: number;
-  type: 'income' | 'expense';
-}
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 const formatDate = (dateString: string): { date: string; monthYear: string; day: string } => {
   const date = new Date(dateString);
@@ -80,108 +77,20 @@ const getMonthlyStatistics = (
   return stats;
 };
 
-const transactions: Transaction[] = [
-  // Today
-  {
-    id: '1',
-    date: '2024-11-14',
-    category: 'Food',
-    remarks: 'Lunch with team',
-    account: 'HDFC Debit Card',
-    amount: -850,
-    type: 'expense'
-  },
-  {
-    id: '2',
-    date: '2024-11-14',
-    category: 'Shopping',
-    remarks: 'Groceries',
-    account: 'Amazon Pay',
-    amount: -2100,
-    type: 'expense'
-  },
-  // Yesterday
-  {
-    id: '3',
-    date: '2024-11-13',
-    category: 'Salary',
-    remarks: 'Monthly Salary',
-    account: 'HDFC Savings',
-    amount: 75000,
-    type: 'income'
-  },
-  {
-    id: '4',
-    date: '2024-11-13',
-    category: 'Bills',
-    remarks: 'Electricity Bill',
-    account: 'SBI Credit Card',
-    amount: -3200,
-    type: 'expense'
-  },
-  // 2 days ago
-  {
-    id: '5',
-    date: '2024-11-12',
-    category: 'Transport',
-    remarks: 'Uber to Office',
-    account: 'Paytm Wallet',
-    amount: -250,
-    type: 'expense'
-  },
-  {
-    id: '6',
-    date: '2024-11-12',
-    category: 'Entertainment',
-    remarks: 'Movie Tickets',
-    account: 'HDFC Credit Card',
-    amount: -1200,
-    type: 'expense'
-  },
-  // 3 days ago
-  {
-    id: '7',
-    date: '2024-11-12',
-    category: 'Investment',
-    remarks: 'Mutual Fund SIP',
-    account: 'ICICI Savings',
-    amount: -10000,
-    type: 'expense'
-  },
-  // 4 days ago
-  {
-    id: '8',
-    date: '2024-11-12',
-    category: 'Shopping',
-    remarks: 'Amazon Purchase',
-    account: 'Amazon Pay Card',
-    amount: -4500,
-    type: 'expense'
-  },
-  // 5 days ago
-  {
-    id: '9',
-    date: '2024-11-11',
-    category: 'Food',
-    remarks: 'Dinner with Family',
-    account: 'HDFC Credit Card',
-    amount: -3200,
-    type: 'expense'
-  },
-  // 6 days ago
-  {
-    id: '10',
-    date: '2024-11-10',
-    category: 'Rent',
-    remarks: 'Monthly Rent',
-    account: 'HDFC Savings',
-    amount: -25000,
-    type: 'expense'
-  },
-];
-
 const TransactionsScreen = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [showEditTransaction, setShowEditTransaction] = useState(false);
+
+  const handleTransactionPress = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setShowEditTransaction(true);
+  };
+
+  const handleDeleteTransaction = () => {
+    // Add your delete logic here
+    console.log('Deleting transaction:', selectedTransaction?.id);
+  };
 
   const groupedTransactions = transactions.reduce((groups: { [key: string]: Transaction[] }, transaction) => {
     const date = transaction.date;
@@ -225,121 +134,151 @@ const TransactionsScreen = () => {
   const { income: monthlyIncome, expenses: monthlyExpenses, total: monthlyTotal } =
     getMonthlyStatistics(transactions, currentDate);
 
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+
+      if (showEditTransaction) {
+        setShowEditTransaction(false);
+        return true;
+      }
+      return false; // Allows default back behavior if no modals are open
+    });
+
+    return () => backHandler.remove();
+  }, [showEditTransaction]);
+
   return (
-   
-          <View style={styles.container}>
-          <View style={styles.header}>
-          <View style={styles.monthSelector}>
-            <TouchableOpacity onPress={() => changeMonth('prev')}>
-              <Text style={styles.monthSelectorArrow}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.currentMonth}>{formatMonth(currentDate)}</Text>
-            <TouchableOpacity onPress={() => changeMonth('next')}>
-              <Text style={styles.monthSelectorArrow}>→</Text>
-            </TouchableOpacity>
-          </View>
 
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.actionButton}>
-              <Icon name="search-outline" size={18} color={colors.text} />
-              <Text style={styles.actionText}>Find</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Icon name="mail-unread-outline" size={18} color={colors.text} />
-              <Text style={styles.actionText}>SMS</Text>
-            </TouchableOpacity>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.monthSelector}>
+          <TouchableOpacity onPress={() => changeMonth('prev')}>
+            <Text style={styles.monthSelectorArrow}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.currentMonth}>{formatMonth(currentDate)}</Text>
+          <TouchableOpacity onPress={() => changeMonth('next')}>
+            <Text style={styles.monthSelectorArrow}>→</Text>
+          </TouchableOpacity>
         </View>
 
-        
-        <View style={styles.monthSummary}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Income</Text>
-            <Text style={[styles.summaryText, styles.incomeText]}>
-              {formatAmount(monthlyIncome)}
-            </Text>
-
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Expenses</Text>
-            <Text style={[styles.summaryText, styles.expenseText]}>
-              {formatAmount(monthlyExpenses)}
-            </Text>
-
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Total</Text>
-            <Text style={[
-              styles.summaryText,
-              monthlyTotal >= 0 ? styles.incomeText : styles.expenseText
-            ]}>
-              {formatAmount(monthlyTotal)}
-            </Text>
-
-          </View>
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="search-outline" size={18} color={colors.text} />
+            <Text style={styles.actionText}>Find</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Icon name="mail-unread-outline" size={18} color={colors.text} />
+            <Text style={styles.actionText}>SMS</Text>
+          </TouchableOpacity>
         </View>
+      </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {Object.keys(groupedTransactions)
-            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-            .map((date, index) => {
-              const dailyTransactions = groupedTransactions[date];
-              const { income, expense } = getDailyTotals(dailyTransactions);
-              const formattedDate = formatDate(date);
 
-              return (
-                <View key={date} style={styles.section}>
-                  <View style={styles.dateHeader}>
-                    <View style={styles.dateInfo}>
-                      <Text style={styles.dateNumber}>{formattedDate.date}</Text>
-                      <View style={styles.dateMetadata}>
-                        <Text style={styles.dateMonth}>{formattedDate.monthYear}</Text>
-                        <Text style={styles.dateDay}>{formattedDate.day}</Text>
-                      </View>
-                    </View>
+      <View style={styles.monthSummary}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Income</Text>
+          <Text style={[styles.summaryText, styles.incomeText]}>
+            {formatAmount(monthlyIncome)}
+          </Text>
 
-                    <View style={styles.dayTotals}>
-                      {income > 0 && (
-                        <Text style={styles.incomeText}>{formatAmount(income)}</Text>
-                      )}
-                      {expense < 0 && (
-                        <Text style={styles.expenseText}>{formatAmount(expense)}</Text>
-                      )}
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Expenses</Text>
+          <Text style={[styles.summaryText, styles.expenseText]}>
+            {formatAmount(monthlyExpenses)}
+          </Text>
+
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Total</Text>
+          <Text style={[
+            styles.summaryText,
+            monthlyTotal >= 0 ? styles.incomeText : styles.expenseText
+          ]}>
+            {formatAmount(monthlyTotal)}
+          </Text>
+
+        </View>
+      </View>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {Object.keys(groupedTransactions)
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+          .map((date, index) => {
+            const dailyTransactions = groupedTransactions[date];
+            const { income, expense } = getDailyTotals(dailyTransactions);
+            const formattedDate = formatDate(date);
+
+            return (
+              <View key={date} style={styles.section}>
+                <View style={styles.dateHeader}>
+                  <View style={styles.dateInfo}>
+                    <Text style={styles.dateNumber}>{formattedDate.date}</Text>
+                    <View style={styles.dateMetadata}>
+                      <Text style={styles.dateMonth}>{formattedDate.monthYear}</Text>
+                      <Text style={styles.dateDay}>{formattedDate.day}</Text>
                     </View>
                   </View>
 
-                  <View style={styles.transactionsList}>
-                    {dailyTransactions.map((tx) => (
-                      <TouchableOpacity
-                        key={tx.id}
-                        style={styles.transactionRow}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.transactionContent}>
-                          <View style={styles.categoryContainer}>
-                            <Text numberOfLines={1} style={styles.categoryText}>
-                              {truncateText(tx.category, 12)}
-                            </Text>
-                          </View>
-                          <Text numberOfLines={1} style={styles.accountText}>
-                            {truncateText(tx.account, 15)}
-                          </Text>
-                          <Text style={[
-                            styles.amountText,
-                            tx.type === 'income' ? styles.incomeText : styles.expenseText
-                          ]}>
-                            {formatAmount(tx.amount)}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
+                  <View style={styles.dayTotals}>
+                    {income > 0 && (
+                      <Text style={styles.incomeText}>{formatAmount(income)}</Text>
+                    )}
+                    {expense < 0 && (
+                      <Text style={styles.expenseText}>{formatAmount(expense)}</Text>
+                    )}
                   </View>
                 </View>
-              );
-            })}
-        </ScrollView>
-        <ActionButtons />
-        </View>
+
+                <View style={styles.transactionsList}>
+                  {dailyTransactions.map((tx) => (
+                    <TouchableOpacity
+                      key={tx.id}
+                      style={styles.transactionRow}
+                      activeOpacity={0.7}
+                      onPress={() => handleTransactionPress(tx)}
+                    >
+                      <View style={styles.transactionContent}>
+                        <View style={styles.categoryContainer}>
+                          <Text numberOfLines={1} style={styles.categoryText}>
+                            {truncateText(tx.category, 12)}
+                          </Text>
+                        </View>
+                        <Text numberOfLines={1} style={styles.accountText}>
+                          {truncateText(tx.account, 15)}
+                        </Text>
+                        <Text style={[
+                          styles.amountText,
+                          tx.type === 'income' ? styles.incomeText : styles.expenseText
+                        ]}>
+                          {formatAmount(tx.amount)}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+      </ScrollView>
+      <Modal
+        visible={showEditTransaction}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        {selectedTransaction && (
+          <EditTransactionScreen
+            transaction={selectedTransaction}
+            onClose={() => {
+              setShowEditTransaction(false);
+              setSelectedTransaction(null);
+            }}
+            onDelete={handleDeleteTransaction}
+          />
+        )}
+      </Modal>
+      <ActionButtons />
+    </View>
 
   );
 };
@@ -385,7 +324,7 @@ const styles = StyleSheet.create({
     color: '#10B981',
   },
   expenseText: {
-    color: '#EF4444',
+    color: colors.primary,
   },
   monthSelector: {
     flexDirection: 'row',
