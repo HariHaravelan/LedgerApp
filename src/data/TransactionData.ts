@@ -10,12 +10,16 @@ export const CATEGORIES: Category[] = [
   { id: '7', name: 'Salary', icon: 'cash', type: 'income' },
   { id: '8', name: 'Investment', icon: 'trending-up', type: 'income' },
   { id: '9', name: 'Others', icon: 'ellipsis-horizontal', type: 'income' },
+  { id: '10', name: 'Transfer', icon: 'ellipsis-horizontal', type: 'transfer' },
 ];
 
 export const ACCOUNTS: Account[] = [
   { id: '1', name: 'HDFC Savings', balance: 25000, type: 'bank' },
   { id: '2', name: 'ICICI Credit Card', balance: -15000, type: 'card' },
-  { id: '3', name: 'Cash Wallet', balance: 5000, type: 'wallet' },
+  { id: '3', name: 'Amazon Pay', balance: 5000, type: 'wallet' },
+  { id: '4', name: 'SBI Credit Card', balance: -150, type: 'card' },
+  { id: '5', name: 'Paytm Wallet', balance: 4567, type: 'card' },
+  { id: '6', name: 'Amex Credit Card', balance: 0, type: 'card' },
 ];
 
 
@@ -24,18 +28,18 @@ export const transactions: Transaction[] = [
   {
     id: '1',
     date: '2024-11-14',
-    category: 'Food',
+    category: CATEGORIES[0],
     remarks: 'Lunch with team',
-    account: 'HDFC Debit Card',
+    account: ACCOUNTS[0],
     amount: -850,
     type: 'expense'
   },
   {
     id: '2',
     date: '2024-11-14',
-    category: 'Shopping',
+    category: CATEGORIES[1],
     remarks: 'Groceries',
-    account: 'Amazon Pay',
+    account: ACCOUNTS[2],
     amount: -2100,
     type: 'expense'
   },
@@ -43,18 +47,18 @@ export const transactions: Transaction[] = [
   {
     id: '3',
     date: '2024-11-13',
-    category: 'Salary',
+    category: CATEGORIES[6],
     remarks: 'Monthly Salary',
-    account: 'HDFC Savings',
+    account: ACCOUNTS[0],
     amount: 75000,
     type: 'income'
   },
   {
     id: '4',
     date: '2024-11-13',
-    category: 'Bills',
+    category: CATEGORIES[3],
     remarks: 'Electricity Bill',
-    account: 'SBI Credit Card',
+    account: ACCOUNTS[3],
     amount: -3200,
     type: 'expense'
   },
@@ -62,18 +66,18 @@ export const transactions: Transaction[] = [
   {
     id: '5',
     date: '2024-11-12',
-    category: 'Transport',
+    category: CATEGORIES[2],
     remarks: 'Uber to Office',
-    account: 'Paytm Wallet',
+    account: ACCOUNTS[4],
     amount: -250,
     type: 'expense'
   },
   {
     id: '6',
     date: '2024-11-12',
-    category: 'Entertainment',
+    category: CATEGORIES[5],
     remarks: 'Movie Tickets',
-    account: 'HDFC Credit Card',
+    account: ACCOUNTS[5],
     amount: -1200,
     type: 'expense'
   },
@@ -81,9 +85,9 @@ export const transactions: Transaction[] = [
   {
     id: '7',
     date: '2024-11-12',
-    category: 'Investment',
+    category: CATEGORIES[7],
     remarks: 'Mutual Fund SIP',
-    account: 'ICICI Savings',
+    account: ACCOUNTS[0],
     amount: -10000,
     type: 'expense'
   },
@@ -91,9 +95,9 @@ export const transactions: Transaction[] = [
   {
     id: '8',
     date: '2024-11-12',
-    category: 'Shopping',
+    category: CATEGORIES[1],
     remarks: 'Amazon Purchase',
-    account: 'Amazon Pay Card',
+    account: ACCOUNTS[2],
     amount: -4500,
     type: 'expense'
   },
@@ -101,9 +105,9 @@ export const transactions: Transaction[] = [
   {
     id: '9',
     date: '2024-11-11',
-    category: 'Food',
+    category: CATEGORIES[0],
     remarks: 'Dinner with Family',
-    account: 'HDFC Credit Card',
+    account: ACCOUNTS[5],
     amount: -3200,
     type: 'expense'
   },
@@ -111,10 +115,20 @@ export const transactions: Transaction[] = [
   {
     id: '10',
     date: '2024-11-10',
-    category: 'Rent',
+    category: CATEGORIES[3],
     remarks: 'Monthly Rent',
-    account: 'HDFC Savings',
+    account: ACCOUNTS[0],
     amount: -25000,
     type: 'expense'
+  },
+  {
+    id: '11',
+    date: '2024-11-14',
+    category: CATEGORIES[9],
+    remarks: 'Credit Card Bill',
+    account: ACCOUNTS[0],
+    toAccount: ACCOUNTS[5],
+    amount: 25000,
+    type: 'transfer'
   },
 ];

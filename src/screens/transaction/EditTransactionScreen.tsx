@@ -13,12 +13,13 @@ import {
     BackHandler,
 } from 'react-native';
 import { themeColors } from '../../constants/colors';
-import ExpenseForm, { ExpenseFormData } from '../../components/forms/ExpenseForm';
+import ExpenseForm from '../../components/forms/ExpenseForm';
 import { ACCOUNTS, CATEGORIES } from '../../data/TransactionData';
 import { IncomeForm } from '../../components/forms/IncomeForm';
 import TransferForm from '../../components/forms/TransferForm';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Transaction } from '../../types/Transaction';
+import { BaseFormData } from '../../types/BaseFormData';
 
 
 interface EditTransactionScreenProps {
@@ -32,22 +33,23 @@ const EditTransactionScreen: React.FC<EditTransactionScreenProps> = ({
     onClose,
     onDelete
 }) => {
-    const [formData, setFormData] = useState<ExpenseFormData>({
+    const [formData, setFormData] = useState<BaseFormData>({
         amount: Math.abs(transaction.amount).toString(),
-        category: transaction.category,
-        account: transaction.account,
+        categoryId: transaction.category.id,
+        accountId: transaction.account.id,
+        toAccountId: transaction.toAccount?.id,
         date: new Date(transaction.date),
         remarks: transaction.remarks ? transaction.remarks : '',
     });
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-          onClose();
-          return true;
+            onClose();
+            return true;
         });
-    
+
         return () => backHandler.remove();
-      }, [onClose]);
+    }, [onClose]);
 
     const handleDelete = () => {
         Alert.alert(
@@ -132,8 +134,9 @@ const EditTransactionScreen: React.FC<EditTransactionScreenProps> = ({
                         <TransferForm
                             data={{
                                 amount: formData.amount,
-                                fromAccountId: formData.account,
-                                toAccountId: '',
+                                accountId: formData.accountId,
+                                categoryId: formData.categoryId,
+                                toAccountId: formData.toAccountId,
                                 date: formData.date,
                                 remarks: formData.remarks,
                             }}
@@ -141,7 +144,9 @@ const EditTransactionScreen: React.FC<EditTransactionScreenProps> = ({
                                 setFormData({
                                     ...formData,
                                     amount: data.amount,
-                                    account: data.fromAccountId,
+                                    accountId: data.accountId,
+                                    categoryId: data.categoryId,
+                                    toAccountId: data.toAccountId,
                                     date: data.date,
                                     remarks: data.remarks,
                                 });

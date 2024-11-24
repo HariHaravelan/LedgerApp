@@ -13,18 +13,11 @@ import { AccountSelector } from '../transaction/AccountSelector';
 import { DateTimePicker } from '../transaction/DateTimePicker';
 import { RemarksInput } from '../transaction/RemarksInput';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-export interface TransferFormData {
-  amount: string;
-  fromAccountId: string;
-  toAccountId: string;
-  date: Date;
-  remarks: string;
-}
+import { BaseFormData } from '../../types/BaseFormData';
 
 interface TransferFormProps {
-  data: TransferFormData;
-  onChange: (data: TransferFormData) => void;
+  data: BaseFormData;
+  onChange: (data: BaseFormData) => void;
   accounts: Account[];
   onSave: () => void;
   onSaveAndContinue: () => void;
@@ -37,7 +30,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
   onSave,
   onSaveAndContinue
 }) => {
-  const toAccountOptions = accounts.filter(acc => acc.id !== data.fromAccountId);
+  const toAccountOptions = accounts.filter(acc => acc.id !== data.accountId);
 
   return (
     <View style={styles.container}>
@@ -57,10 +50,10 @@ export const TransferForm: React.FC<TransferFormProps> = ({
           <View style={styles.inputContainer}>
             <AccountSelector
               accounts={accounts}
-              selectedId={data.fromAccountId}
+              selectedId={data.accountId}
               onSelect={(id) => onChange({
                 ...data,
-                fromAccountId: id,
+                accountId: id,
                 toAccountId: id === data.toAccountId ? '' : data.toAccountId
               })}
             />
@@ -73,7 +66,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
           <View style={styles.inputContainer}>
             <AccountSelector
               accounts={toAccountOptions}
-              selectedId={data.toAccountId}
+              selectedId={data.toAccountId ? data.toAccountId : ''}
               onSelect={(id) => onChange({ ...data, toAccountId: id })}
             />
           </View>

@@ -5,21 +5,16 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
-  Platform,
   Modal,
   BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import ActionButtons from '../../components/ActionButtons';
-import { Layout } from '../../components/Layout';
 import { Transaction } from '../../types/Transaction';
 import { transactions } from '../../data/TransactionData';
-import AddTransactionScreen from './AddTransactionScreen';
 import EditTransactionScreen from './EditTransactionScreen';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 const formatDate = (dateString: string): { date: string; monthYear: string; day: string } => {
   const date = new Date(dateString);
   return {
@@ -97,6 +92,7 @@ const TransactionsScreen = () => {
     if (!groups[date]) {
       groups[date] = [];
     }
+  
     groups[date].push(transaction);
     return groups;
   }, {});
@@ -241,11 +237,11 @@ const TransactionsScreen = () => {
                       <View style={styles.transactionContent}>
                         <View style={styles.categoryContainer}>
                           <Text numberOfLines={1} style={styles.categoryText}>
-                            {truncateText(tx.category, 12)}
+                            {truncateText(tx.category.name, 12)}
                           </Text>
                         </View>
                         <Text numberOfLines={1} style={styles.accountText}>
-                          {truncateText(tx.account, 15)}
+                          {truncateText(tx.account.name, 15)}
                         </Text>
                         <Text style={[
                           styles.amountText,

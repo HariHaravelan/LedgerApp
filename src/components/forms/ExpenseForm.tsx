@@ -6,30 +6,21 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Platform,
 } from 'react-native';
 import { colors, themeColors } from '../../constants/colors';
-import { fontStandard } from '../../styles/theme';
 import { Account, Category } from '../../types/Transaction';
 import { AmountInput } from '../transaction/AmountInput';
 import { CategorySelector } from '../transaction/CategorySelector';
 import { AccountSelector } from '../transaction/AccountSelector';
 import { DateTimePicker } from '../transaction/DateTimePicker';
 import { RemarksInput } from '../transaction/RemarksInput';
-
-export interface ExpenseFormData {
-  amount: string;
-  category: string;
-  account: string;
-  date: Date;
-  remarks: string;
-}
+import { BaseFormData } from '../../types/BaseFormData';
 
 // Props for the ExpenseForm component
 interface ExpenseFormProps {
-  data: ExpenseFormData;
-  onChange: (data: ExpenseFormData) => void;
+  data: BaseFormData;
+  onChange: (data: BaseFormData) => void;
   categories: Category[]; // Add categories prop
   accounts: Account[]; // Add accounts prop
   onSave: () => void;
@@ -60,8 +51,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         <View style={styles.inputContainer}>
           <CategorySelector
             categories={categories}
-            selectedId={data.category}
-            onSelect={(id) => onChange({ ...data, category: id })} />
+            selectedId={data.categoryId}
+            onSelect={(id) => onChange({ ...data, categoryId: id })} />
         </View>
       </View>
 
@@ -71,8 +62,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         <View style={styles.inputContainer}>
           <AccountSelector
             accounts={accounts}
-            selectedId={data.account}
-            onSelect={(id) => onChange({ ...data, account: id })} />
+            selectedId={data.accountId}
+            onSelect={(id) => onChange({ ...data, accountId: id })} />
         </View>
       </View>
 
