@@ -9,106 +9,125 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Pressable
+  Pressable,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { colors } from '../../constants/colors';
 import { ACCOUNT_SUBTYPES, ACCOUNT_TYPE_OPTIONS } from '../../data/AccountsData';
 
+// Types
+interface Option {
+  value: string;
+  label: string;
+  icon?: string;
+}
 
-type AccountSubType = typeof ACCOUNT_SUBTYPES[MainAccountType][number]['value'];
+interface ModalDropdownProps {
+  label: string;
+  placeholder: string;
+  options: Option[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+  showIcon?: boolean;
+}
 
-// Custom Dropdown Component
-
-
-const CustomDropdown: React.FC<CustomDropdownProps> = ({ 
-  label, 
-  selected, 
+// Reusable Modal Dropdown Component
+const ModalDropdown: React.FC<ModalDropdownProps> = ({
+  label,
+  placeholder,
   options,
-  isOpen,
-  onToggle,
+  selectedValue,
   onSelect,
-  showIcons = false,
-  dropdownStyle,
-  containerStyle
+  showIcon = false,
 }) => {
-  const selectedOption = options.find(opt => opt.value === selected);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const selectedOption = options.find(opt => opt.value === selectedValue);
 
   return (
-    <View style={containerStyle}>
-      <TouchableOpacity
-        style={styles.dropdownButton}
-        onPress={onToggle}
-        activeOpacity={0.7}
-      >
-        <View style={styles.dropdownButtonContent}>
-          <View style={styles.selectedTypeContainer}>
-            {showIcons && selectedOption?.icon && (
-              <Icon 
+    <>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{label}</Text>
+        <TouchableOpacity
+          style={styles.dropdownButton}
+          onPress={() => setIsModalVisible(true)}
+        >
+          <View style={styles.dropdownContent}>
+            {showIcon && selectedOption?.icon && (
+              <Icon
                 name={selectedOption.icon}
                 size={20}
-                color="#2D3142"
+                color={colors.text}
                 style={styles.dropdownIcon}
               />
             )}
-            <Text style={styles.dropdownButtonText}>
-              {selectedOption ? selectedOption.label : label}
+            <Text style={[
+              styles.dropdownText,
+              !selectedOption && styles.placeholderText
+            ]}>
+              {selectedOption?.label || placeholder}
             </Text>
           </View>
-          <Icon 
-            name={isOpen ? 'chevron-up' : 'chevron-down'} 
-            size={20} 
-            color="#2D3142" 
-          />
-        </View>
-      </TouchableOpacity>
-      
+          <Icon name="chevron-down" size={20} color={colors.textLight} />
+        </TouchableOpacity>
+      </View>
+
       <Modal
-        visible={isOpen}
+        visible={isModalVisible}
         transparent
-        animationType="fade"
-        onRequestClose={onToggle}
+        animationType="slide"
+        onRequestClose={() => setIsModalVisible(false)}
       >
         <Pressable 
-          style={styles.modalOverlay} 
-          onPress={onToggle}
+          style={styles.modalOverlay}
+          onPress={() => setIsModalVisible(false)}
         >
-          <View style={[
-            styles.dropdownListContainer,
-            styles.dropdownListShadow,
-            dropdownStyle
-          ]}>
-            {options.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.dropdownItem,
-                  selected === option.value && styles.selectedDropdownItem
-                ]}
-                onPress={() => {
-                  onSelect(option.value);
-                  onToggle();
-                }}
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{label}</Text>
+              <TouchableOpacity 
+                onPress={() => setIsModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                {showIcons && option.icon && (
-                  <Icon 
-                    name={option.icon}
-                    size={20}
-                    color={selected === option.value ? '#2E5BFF' : '#2D3142'}
-                    style={styles.dropdownItemIcon}
-                  />
-                )}
-                <Text style={[
-                  styles.dropdownItemText,
-                  selected === option.value && styles.selectedDropdownItemText
-                ]}>
-                  {option.label}
-                </Text>
+                <Icon name="close" size={24} color={colors.text} />
               </TouchableOpacity>
-            ))}
+            </View>
+
+            <ScrollView bounces={false}>
+              {options.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.optionItem}
+                  onPress={() => {
+                    onSelect(option.value);
+                    setIsModalVisible(false);
+                  }}
+                >
+                  <View style={styles.optionContent}>
+                    {showIcon && option.icon && (
+                      <Icon
+                        name={option.icon}
+                        size={20}
+                        color={selectedValue === option.value ? colors.primary : colors.text}
+                        style={styles.optionIcon}
+                      />
+                    )}
+                    <Text style={[
+                      styles.optionText,
+                      selectedValue === option.value && styles.selectedOptionText
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </View>
+                  {selectedValue === option.value && (
+                    <Icon name="checkmark" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
-    </View>
+    </>
   );
 };
 
@@ -118,101 +137,20 @@ interface AddAccountScreenProps {
 }
 
 const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
-  const [mainType, setMainType] = useState<MainAccountType>('bank');
-  const [isMainTypeOpen, setIsMainTypeOpen] = useState(false);
-  const [subType, setSubType] = useState<AccountSubType | ''>('');
-  const [isSubTypeOpen, setIsSubTypeOpen] = useState(false);
+  const [accountType, setAccountType] = useState('');
+  const [accountSubtype, setAccountSubtype] = useState('');
   const [nickname, setNickname] = useState('');
   const [balance, setBalance] = useState('');
   const [notes, setNotes] = useState('');
-  
-  // Additional states for specific account types
-  const [interestRate, setInterestRate] = useState('');
-  const [maturityDate, setMaturityDate] = useState('');
-  const [creditLimit, setCreditLimit] = useState('');
 
-  const getBalanceLabel = () => {
-    switch (mainType) {
-      case 'loan':
-        return 'Outstanding Amount';
-      case 'investment':
-        return 'Invested Amount';
-      case 'card':
-        return subType === 'credit' ? 'Current Outstanding' : 'Available Balance';
-      default:
-        return 'Current Balance';
-    }
+  const subtypeOptions = accountType ? ACCOUNT_SUBTYPES[accountType] : [];
+
+  const handleAccountTypeChange = (type: string) => {
+    setAccountType(type);
+    setAccountSubtype(''); // Reset subtype when main type changes
   };
 
-  const renderAdditionalFields = () => {
-    switch (mainType) {
-      case 'investment':
-        if (['fd', 'rd', 'bonds'].includes(subType)) {
-          return (
-            <>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Interest Rate (%)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={interestRate}
-                  onChangeText={setInterestRate}
-                  keyboardType="numeric"
-                  placeholder="Enter interest rate"
-                  placeholderTextColor="#8E8E93"
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Maturity Date (Optional)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={maturityDate}
-                  onChangeText={setMaturityDate}
-                  placeholder="MM/YYYY"
-                  placeholderTextColor="#8E8E93"
-                />
-              </View>
-            </>
-          );
-        }
-        return null;
-      
-      case 'card':
-        if (subType === 'credit') {
-          return (
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Credit Limit</Text>
-              <TextInput
-                style={styles.input}
-                value={creditLimit}
-                onChangeText={setCreditLimit}
-                keyboardType="numeric"
-                placeholder="Enter credit limit"
-                placeholderTextColor="#8E8E93"
-              />
-            </View>
-          );
-        }
-        return null;
-      
-      case 'loan':
-        return (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Interest Rate (%)</Text>
-            <TextInput
-              style={styles.input}
-              value={interestRate}
-              onChangeText={setInterestRate}
-              keyboardType="numeric"
-              placeholder="Enter interest rate"
-              placeholderTextColor="#8E8E93"
-            />
-          </View>
-        );
-      
-      default:
-        return null;
-    }
-  };
+  const canSave = accountType && accountSubtype && nickname && balance;
 
   return (
     <KeyboardAvoidingView 
@@ -221,16 +159,13 @@ const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={onClose}>
-          <Icon name="close-outline" size={24} color="#2D3142" />
+          <Text style={styles.headerButton}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Account</Text>
         <TouchableOpacity 
           onPress={onClose}
-          style={[
-            styles.saveButton,
-            (!nickname || !balance) && styles.saveButtonDisabled
-          ]}
-          disabled={!nickname || !balance}
+          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
+          disabled={!canSave}
         >
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
@@ -238,40 +173,24 @@ const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
 
       <ScrollView style={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Type</Text>
-          <CustomDropdown
-            label="Select Account Type"
-            selected={mainType}
+          <ModalDropdown
+            label="Account Type"
+            placeholder="Select Account Type"
             options={ACCOUNT_TYPE_OPTIONS}
-            isOpen={isMainTypeOpen}
-            onToggle={() => {
-              setIsMainTypeOpen(!isMainTypeOpen);
-              setIsSubTypeOpen(false);
-            }}
-            onSelect={(value) => {
-              setMainType(value as MainAccountType);
-              setSubType(''); // Reset subtype when main type changes
-            }}
-            showIcons
+            selectedValue={accountType}
+            onSelect={handleAccountTypeChange}
+            showIcon
           />
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Subtype</Text>
-          <CustomDropdown
-            label="Select Account Subtype"
-            selected={subType}
-            options={ACCOUNT_SUBTYPES[mainType]}
-            isOpen={isSubTypeOpen}
-            onToggle={() => {
-              setIsSubTypeOpen(!isSubTypeOpen);
-              setIsMainTypeOpen(false);
-            }}
-            onSelect={(value) => setSubType(value as AccountSubType)}
+          <ModalDropdown
+            label="Account Subtype"
+            placeholder="Select Account Subtype"
+            options={subtypeOptions}
+            selectedValue={accountSubtype}
+            onSelect={setAccountSubtype}
+            showIcon
           />
-        </View>
 
-        <View style={styles.section}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Account Nickname *</Text>
             <TextInput
@@ -279,23 +198,21 @@ const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
               value={nickname}
               onChangeText={setNickname}
               placeholder="E.g., Personal Savings, Emergency Fund"
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={colors.textLight}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>{getBalanceLabel()} *</Text>
+            <Text style={styles.label}>Current Balance *</Text>
             <TextInput
               style={styles.input}
               value={balance}
               onChangeText={setBalance}
               keyboardType="numeric"
               placeholder="0.00"
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={colors.textLight}
             />
           </View>
-
-          {renderAdditionalFields()}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Notes (Optional)</Text>
@@ -304,7 +221,7 @@ const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
               value={notes}
               onChangeText={setNotes}
               placeholder="Add any additional notes"
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={colors.textLight}
               multiline
               numberOfLines={3}
             />
@@ -316,215 +233,157 @@ const AddAccountScreen: React.FC<AddAccountScreenProps> = ({ onClose }) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
+  container: {
     flex: 1,
-    backgroundColor: '#F8FAFF'
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#fff',
+    height: 56,
+    paddingHorizontal: 16,
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8ECEF'
+    borderBottomColor: colors.border,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#2D3142'
+    color: colors.text,
+  },
+  headerButton: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '500',
   },
   saveButton: {
     paddingVertical: 8,
-    paddingHorizontal: 16
+    paddingHorizontal: 16,
   },
   saveButtonDisabled: {
-    opacity: 0.5
+    opacity: 0.5,
   },
   saveButtonText: {
-    color: '#2E5BFF',
-    fontWeight: '600'
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
-    padding: 16
+    padding: 16,
   },
   section: {
-    marginBottom: 24
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2D3142',
-    marginBottom: 12
-  },
-  mainTypeContainer: {
-    flexDirection: 'row',
-    gap: 8
-  },
-  typeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E8ECEF',
-    backgroundColor: '#fff'
-  },
-  selectedTypeButton: {
-    backgroundColor: '#2E5BFF',
-    borderColor: '#2E5BFF'
-  },
-  typeIcon: {
-    marginRight: 6
-  },
-  typeButtonText: {
-    color: '#2D3142',
-    fontWeight: '500'
-  },
-  selectedTypeButtonText: {
-    color: '#fff'
-  },
-  subTypeContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
-  },
-  subTypeButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E8ECEF'
-  },
-  selectedSubTypeButton: {
-    backgroundColor: '#2E5BFF',
-    borderColor: '#2E5BFF'
-  },
-  subTypeText: {
-    color: '#2D3142',
-    fontWeight: '500'
-  },
-  selectedSubTypeText: {
-    color: '#fff'
+    marginBottom: 24,
   },
   inputContainer: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 8
+    color: colors.textLight,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E8ECEF',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#2D3142'
+    color: colors.text,
   },
   notesInput: {
     height: 80,
-    textAlignVertical: 'top'
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-start',
-    paddingTop: Platform.OS === 'ios' ? 100 : 60,
-    paddingHorizontal: 16,
+    textAlignVertical: 'top',
   },
   dropdownButton: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E8ECEF',
-  },
-  dropdownButtonContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
     padding: 12,
   },
-  selectedTypeContainer: {
+  dropdownContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   dropdownIcon: {
-    marginRight: 8,
+    marginRight: 12,
     width: 24,
     textAlign: 'center',
   },
-  dropdownButtonText: {
+  dropdownText: {
     fontSize: 16,
-    color: '#2D3142',
+    color: colors.text,
   },
-  dropdownListContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: '100%',
+  placeholderText: {
+    color: colors.textLight,
   },
-  dropdownListShadow: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '80%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
       },
       android: {
         elevation: 5,
       },
     }),
   },
-  dropdownItem: {
+  modalHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#E8ECEF',
+    borderBottomColor: colors.border,
   },
-  dropdownItemIcon: {
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  optionIcon: {
     marginRight: 12,
     width: 24,
     textAlign: 'center',
   },
-  selectedDropdownItem: {
-    backgroundColor: '#F0F4FF',
-  },
-  dropdownItemText: {
+  optionText: {
     fontSize: 16,
-    color: '#2D3142',
+    color: colors.text,
   },
-  selectedDropdownItemText: {
-    color: '#2E5BFF',
+  selectedOptionText: {
+    color: colors.primary,
     fontWeight: '500',
-  },
-  dropdownList: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E8ECEF',
-    marginTop: 4,
-    zIndex: 1000,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
 });
 

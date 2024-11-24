@@ -114,9 +114,6 @@ export const ACCOUNT_SUBTYPES: Record<MainAccountType, DropdownOption[]> = {
     bank: [
         { value: 'savings', label: 'Savings' },
         { value: 'current', label: 'Current' },
-        { value: 'nre', label: 'NRE' },
-        { value: 'nro', label: 'NRO' },
-        { value: 'ppf', label: 'PPF' }
     ],
     wallet: [
         { value: 'paytm', label: 'Paytm' },

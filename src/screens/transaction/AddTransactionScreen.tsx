@@ -13,10 +13,11 @@ import {
 } from 'react-native';
 import { themeColors } from '../../constants/colors';
 import TransactionTypeTabs, { TransactionType } from '../../components/transaction/TransactionTypeTabs';
-import ExpenseForm, { ExpenseFormData } from '../../components/forms/ExpenseForm';
+import ExpenseForm from '../../components/forms/ExpenseForm';
 import { ACCOUNTS, CATEGORIES } from '../../data/TransactionData';
 import { IncomeForm } from '../../components/forms/IncomeForm';
-import TransferForm, { TransferFormData } from '../../components/forms/TransferForm';
+import TransferForm from '../../components/forms/TransferForm';
+import { BaseFormData } from '../../types/BaseFormData';
 
 interface AddTransactionScreenProps {
   onClose: () => void;
@@ -24,17 +25,18 @@ interface AddTransactionScreenProps {
 
 const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({ onClose }) => {
   const [transactionType, setTransactionType] = useState<TransactionType>('expense');
-  const [formData, setFormData] = useState<ExpenseFormData>({
+  const [formData, setFormData] = useState<BaseFormData>({
     amount: '',
-    category: '',
-    account: '',
+    categoryId: '',
+    accountId: '',
     date: new Date(),
     remarks: '',
   });
 
-  const [transferformData, setTransferFormData] = useState<TransferFormData>({
+  const [transferformData, setTransferFormData] = useState<BaseFormData>({
     amount: '',
-    fromAccountId: '',
+    categoryId:'',
+    accountId: '',
     toAccountId: '',
     date: new Date(),
     remarks: ''

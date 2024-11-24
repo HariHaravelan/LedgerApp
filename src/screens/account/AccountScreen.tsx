@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   summaryMainLabel: {
-    fontSize: 11,
+    fontSize: 13,
     color: colors.white,
     opacity: 0.9,
   },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   groupTitle: {
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
     marginLeft: 6,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   accountCountText: {
     color: colors.white,
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '500',
   },
   groupTotal: {

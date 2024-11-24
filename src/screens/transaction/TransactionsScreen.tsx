@@ -92,7 +92,7 @@ const TransactionsScreen = () => {
     if (!groups[date]) {
       groups[date] = [];
     }
-  
+
     groups[date].push(transaction);
     return groups;
   }, {});
@@ -240,8 +240,29 @@ const TransactionsScreen = () => {
                             {truncateText(tx.category.name, 12)}
                           </Text>
                         </View>
+                        {/* <Text numberOfLines={1} style={styles.accountText}>
+                          {tx.toAccount ? (
+                            `${truncateText(tx.account.name, 10)} → ${truncateText(tx.toAccount.name, 10)}`
+                          ) : (
+                            truncateText(tx.account.name, 15)
+                          )}
+                        </Text> */}
                         <Text numberOfLines={1} style={styles.accountText}>
-                          {truncateText(tx.account.name, 15)}
+                          {tx.toAccount ? (
+                            <>
+                              <Text style={styles.transferAccountText}>
+                                {truncateText(tx.account.name, 8)}
+                              </Text>
+                              <Text style={styles.transferArrow}> → </Text>
+                              <Text style={styles.transferAccountText}>
+                                {truncateText(tx.toAccount.name, 8)}
+                              </Text>
+                            </>
+                          ) : (
+                            <Text style={styles.accountText}>
+                              {truncateText(tx.account.name, 15)}
+                            </Text>
+                          )}
                         </Text>
                         <Text style={[
                           styles.amountText,
@@ -282,6 +303,15 @@ const TransactionsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  transferArrow: {
+    color: colors.textLight,
+    fontSize: 12,
+    marginHorizontal: 4,
+  },
+  transferAccountText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   header: {
     flexDirection: 'row',
