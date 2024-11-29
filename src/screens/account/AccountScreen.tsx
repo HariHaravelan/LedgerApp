@@ -1,15 +1,20 @@
 // src/screens/AccountsScreen.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  SafeAreaView,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
-import { accounts } from '../../data/AccountsData';
+import { ACCOUNT_TYPES, accounts } from '../../data/AccountsData';
+import EditAccountScreen from './EditAccountScreen';
 
 const formatAmount = (amount: number): string => {
   const isNegative = amount < 0;
@@ -23,6 +28,36 @@ const formatAmount = (amount: number): string => {
 };
 
 const AccountsScreen = () => {
+
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+
+  const handleAccountPress = (account: Account) => {
+    setSelectedAccount(account);
+    requestAnimationFrame(() => {
+      setIsEditModalVisible(true);
+    });
+  };
+
+  const [slideAnimation] = useState(new Animated.Value(Dimensions.get('window').height));
+
+  useEffect(() => {
+    if (isEditModalVisible) {
+      Animated.spring(slideAnimation, {
+        toValue: 0,
+        useNativeDriver: true,
+        bounciness: 0,  // Reduce bounce effect
+        speed: 14       // Adjust speed as needed
+      }).start();
+    } else {
+      Animated.timing(slideAnimation, {
+        toValue: Dimensions.get('window').height,
+        duration: 200,
+        useNativeDriver: true
+      }).start();
+    }
+  }, [isEditModalVisible]);
+
   const renderAccountGroup = (title: string, type: AccountType, icon: string, accounts: Account[]) => {
     const groupAccounts = accounts.filter(account => account.type === type);
     if (groupAccounts.length === 0) return null;
@@ -44,10 +79,11 @@ const AccountsScreen = () => {
 
         <View style={styles.accountsContainer}>
           {groupAccounts.map((account) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={account.id}
               style={styles.accountItem}
               activeOpacity={0.7}
+              onPress={() => handleAccountPress(account)}
             >
               <View style={styles.accountInfo}>
                 <View style={styles.nameContainer}>
@@ -76,14 +112,37 @@ const AccountsScreen = () => {
             </TouchableOpacity>
           ))}
         </View>
+        <Modal
+          visible={isEditModalVisible}
+          animationType="none"
+          onRequestClose={() => setIsEditModalVisible(false)}
+          style={{ margin: 0 }}
+          presentationStyle="fullScreen"    // Change this
+        >
+          <SafeAreaView style={{
+            flex: 1,
+            backgroundColor: colors.white   // Ensure solid background color
+          }}>
+            {selectedAccount && (
+              <EditAccountScreen
+                account={selectedAccount}
+                onClose={() => setIsEditModalVisible(false)}
+                onUpdate={(updatedAccount) => {
+                  // Handle update
+                  setIsEditModalVisible(false);
+                }}
+              />
+            )}
+          </SafeAreaView>
+        </Modal>
       </View>
     );
   };
 
-  const totalAssets = accounts.reduce((sum, account) => 
+  const totalAssets = accounts.reduce((sum, account) =>
     account.balance > 0 ? sum + account.balance : sum, 0
   );
-  const totalLiabilities = accounts.reduce((sum, account) => 
+  const totalLiabilities = accounts.reduce((sum, account) =>
     account.balance < 0 ? sum + Math.abs(account.balance) : sum, 0
   );
   const netWorth = totalAssets - totalLiabilities;
@@ -109,19 +168,19 @@ const AccountsScreen = () => {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {renderAccountGroup('Bank Accounts', 'bank', 'business-outline', accounts)}
+        {renderAccountGroup('Bank Accounts', ACCOUNT_TYPES[0], 'business-outline', accounts)}
         <View style={styles.sectionDivider} />
-        {renderAccountGroup('Wallets', 'wallet', 'wallet-outline', accounts)}
+        {renderAccountGroup('Wallets', ACCOUNT_TYPES[1], 'wallet-outline', accounts)}
         <View style={styles.sectionDivider} />
-        {renderAccountGroup('Cards', 'card', 'card-outline', accounts)}
+        {renderAccountGroup('Cards', ACCOUNT_TYPES[2], 'card-outline', accounts)}
         <View style={styles.sectionDivider} />
-        {renderAccountGroup('Loans', 'loan', 'cash-outline', accounts)}
+        {renderAccountGroup('Loans', ACCOUNT_TYPES[3], 'cash-outline', accounts)}
         <View style={styles.sectionDivider} />
-        {renderAccountGroup('Investments', 'investment', 'trending-up-outline', accounts)}
+        {renderAccountGroup('Investments', ACCOUNT_TYPES[4], 'trending-up-outline', accounts)}
       </ScrollView>
     </View>
   );
@@ -129,6 +188,10 @@ const AccountsScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  modalContainer: {
     flex: 1,
     backgroundColor: colors.white,
   },

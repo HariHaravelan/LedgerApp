@@ -1,8 +1,44 @@
+export const ACCOUNT_TYPES: AccountType[] = [
+    { id: '1', name: "bank" },
+    { id: '2', name: "wallet" },
+    { id: '3', name: "card" },
+    { id: '4', name: "investments" },
+    { id: '5', name: "loan" },
+];
+
+
+export const ACCOUNT_SUBTYPES: AccountSubType[] = [
+
+    { id: '1', name: 'savings', type: ACCOUNT_TYPES[0] },
+    { id: '2', name: 'current', type: ACCOUNT_TYPES[0] },
+    { id: '3', name: 'paytm', type: ACCOUNT_TYPES[1] },
+    { id: '4', name: 'amazonpay', type: ACCOUNT_TYPES[1] },
+    { id: '5', name: 'other', type: ACCOUNT_TYPES[1] },
+    { id: '6', name: 'food', type: ACCOUNT_TYPES[2] },
+    { id: '7', name: 'credit', type: ACCOUNT_TYPES[2] },
+    { id: '8', name: 'fuel', type: ACCOUNT_TYPES[2] },
+    { id: '9', name: 'other', type: ACCOUNT_TYPES[2] },
+    { id: '10', name: 'personal', type: ACCOUNT_TYPES[4] },
+    { id: '11', name: 'home', type: ACCOUNT_TYPES[4] },
+    { id: '12', name: 'vehicle', type: ACCOUNT_TYPES[4] },
+    { id: '13', name: 'education', type: ACCOUNT_TYPES[4] },
+    { id: '14', name: 'business', type: ACCOUNT_TYPES[4] },
+    { id: '15', name: 'stocks', type: ACCOUNT_TYPES[3] },
+    { id: '16', name: 'mutual_funds', type: ACCOUNT_TYPES[3] },
+    { id: '17', name: 'bonds', type: ACCOUNT_TYPES[3] },
+    { id: '18', name: 'SGB', type: ACCOUNT_TYPES[3] },
+    { id: '19', name: 'crypto', type: ACCOUNT_TYPES[3] },
+    { id: '20', name: 'FD', type: ACCOUNT_TYPES[3] },
+    { id: '21', name: 'RD', type: ACCOUNT_TYPES[3] },
+];
+
+
 export const accounts: Account[] = [
     // Bank Accounts
     {
         id: '1',
-        type: 'bank',
+        type: ACCOUNT_TYPES[0],
+        subType: ACCOUNT_SUBTYPES[0], // savings
         name: 'HDFC Savings',
         balance: 25000,
         institution: 'HDFC Bank',
@@ -10,7 +46,8 @@ export const accounts: Account[] = [
     },
     {
         id: '2',
-        type: 'bank',
+        type: ACCOUNT_TYPES[0],
+        subType: ACCOUNT_SUBTYPES[0], // savings
         name: 'SBI Savings',
         balance: 45000,
         institution: 'State Bank of India',
@@ -20,7 +57,8 @@ export const accounts: Account[] = [
     // Wallets
     {
         id: '3',
-        type: 'wallet',
+        type: ACCOUNT_TYPES[1],
+        subType: ACCOUNT_SUBTYPES[2], // paytm
         name: 'Paytm Wallet',
         balance: 2500,
         institution: 'Paytm',
@@ -28,7 +66,8 @@ export const accounts: Account[] = [
     },
     {
         id: '4',
-        type: 'wallet',
+        type: ACCOUNT_TYPES[1],
+        subType: ACCOUNT_SUBTYPES[3], // amazonpay
         name: 'Amazon Pay',
         balance: 1500,
         institution: 'Amazon',
@@ -38,7 +77,8 @@ export const accounts: Account[] = [
     // Credit Cards
     {
         id: '5',
-        type: 'card',
+        type: ACCOUNT_TYPES[2],
+        subType: ACCOUNT_SUBTYPES[6], // credit
         name: 'HDFC Credit Card',
         balance: -15000,
         institution: 'HDFC Bank',
@@ -46,7 +86,8 @@ export const accounts: Account[] = [
     },
     {
         id: '6',
-        type: 'card',
+        type: ACCOUNT_TYPES[2],
+        subType: ACCOUNT_SUBTYPES[6], // credit
         name: 'Amazon Pay Card',
         balance: -5000,
         institution: 'ICICI Bank',
@@ -56,7 +97,8 @@ export const accounts: Account[] = [
     // Loans
     {
         id: '7',
-        type: 'loan',
+        type: ACCOUNT_TYPES[4],
+        subType: ACCOUNT_SUBTYPES[11], // home
         name: 'Home Loan',
         balance: -2500000,
         institution: 'HDFC Bank',
@@ -64,7 +106,8 @@ export const accounts: Account[] = [
     },
     {
         id: '8',
-        type: 'loan',
+        type: ACCOUNT_TYPES[4], // Changed from 3 to 5 for loans
+        subType: ACCOUNT_SUBTYPES[12], // vehicle
         name: 'Car Loan',
         balance: -500000,
         institution: 'ICICI Bank',
@@ -74,7 +117,8 @@ export const accounts: Account[] = [
     // Investments
     {
         id: '9',
-        type: 'investment',
+        type: ACCOUNT_TYPES[3],
+        subType: ACCOUNT_SUBTYPES[19], // fd
         name: 'HDFC FD',
         balance: 100000,
         institution: 'HDFC Bank',
@@ -83,7 +127,8 @@ export const accounts: Account[] = [
     },
     {
         id: '10',
-        type: 'investment',
+        type: ACCOUNT_TYPES[3],
+        subType: ACCOUNT_SUBTYPES[20], // rd
         name: 'Post Office RD',
         balance: 50000,
         institution: 'Post Office',
@@ -92,7 +137,8 @@ export const accounts: Account[] = [
     },
     {
         id: '11',
-        type: 'investment',
+        type: ACCOUNT_TYPES[3],
+        subType: ACCOUNT_SUBTYPES[15], // mutual_funds
         name: 'Mutual Funds',
         balance: 7500000,
         institution: 'Groww',
@@ -101,7 +147,8 @@ export const accounts: Account[] = [
     },
     {
         id: '12',
-        type: 'investment',
+        type: ACCOUNT_TYPES[3],
+        subType: ACCOUNT_SUBTYPES[14], // stocks
         name: 'Stocks Portfolio',
         balance: 125000,
         institution: 'Zerodha',
@@ -110,47 +157,35 @@ export const accounts: Account[] = [
     },
 ];
 
-export const ACCOUNT_SUBTYPES: Record<MainAccountType, DropdownOption[]> = {
-    bank: [
-        { value: 'savings', label: 'Savings' },
-        { value: 'current', label: 'Current' },
-    ],
-    wallet: [
-        { value: 'paytm', label: 'Paytm' },
-        { value: 'phonepe', label: 'PhonePe' },
-        { value: 'gpay', label: 'Google Pay' },
-        { value: 'amazonpay', label: 'Amazon Pay' },
-        { value: 'other', label: 'Other' }
-    ],
-    card: [
-        { value: 'credit', label: 'Credit Card' },
-        { value: 'food', label: 'Food Card' },
-        { value: 'fuel', label: 'Fuel Card' },
-        { value: 'travel', label: 'Travel Card' },
-        { value: 'other', label: 'Other' }
-    ],
-    loan: [
-        { value: 'personal', label: 'Personal' },
-        { value: 'home', label: 'Home' },
-        { value: 'vehicle', label: 'Vehicle' },
-        { value: 'education', label: 'Education' },
-        { value: 'business', label: 'Business' }
-    ],
-    investment: [
-        { value: 'stocks', label: 'Stocks' },
-        { value: 'mutual_funds', label: 'Mutual Funds' },
-        { value: 'bonds', label: 'Bonds' },
-        { value: 'sgb', label: 'Sovereign Gold' },
-        { value: 'crypto', label: 'Crypto' },
-        { value: 'fd', label: 'Fixed Deposit' },
-        { value: 'rd', label: 'Recurring Deposit' }
-    ]
-};
-
 export const ACCOUNT_TYPE_OPTIONS: DropdownOption[] = [
-    { value: 'bank', label: 'Bank Account', icon: 'business-outline' },
-    { value: 'wallet', label: 'E-Wallet', icon: 'wallet-outline' },
-    { value: 'card', label: 'Cards', icon: 'card-outline' },
-    { value: 'loan', label: 'Loans', icon: 'cash-outline' },
-    { value: 'investment', label: 'Investments', icon: 'trending-up-outline' },
+    {
+        value: ACCOUNT_TYPES[0].id,  // bank
+        label: 'Bank Account',
+        icon: 'business-outline'
+    },
+    {
+        value: ACCOUNT_TYPES[1].id,  // wallet
+        label: 'E-Wallet',
+        icon: 'wallet-outline'
+    },
+    {
+        value: ACCOUNT_TYPES[2].id,  // card
+        label: 'Cards',
+        icon: 'card-outline'
+    },
+    {
+        value: ACCOUNT_TYPES[4].id,  // loan
+        label: 'Loans',
+        icon: 'cash-outline'
+    },
+    {
+        value: ACCOUNT_TYPES[3].id,  // investments
+        label: 'Investments',
+        icon: 'trending-up-outline'
+    },
+    // { 
+    //     value: ACCOUNT_TYPES[5].name,  // others
+    //     label: 'Others',
+    //     icon: 'ellipsis-horizontal-outline'  // Common icon for "other" categories
+    //   }
 ];
