@@ -14,6 +14,8 @@ import ActionButtons from '../../components/ActionButtons';
 import { Transaction } from '../../types/Transaction';
 import { transactions } from '../../data/TransactionData';
 import EditTransactionScreen from './EditTransactionScreen';
+import { SMSReader } from '../../util/SMSHandler';
+import { SMSReaderModal } from '../../components/sms/SMSReaderModal';
 
 const formatDate = (dateString: string): { date: string; monthYear: string; day: string } => {
   const date = new Date(dateString);
@@ -76,6 +78,7 @@ const TransactionsScreen = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showEditTransaction, setShowEditTransaction] = useState(false);
+  const [showSMSModal, setShowSMSModal] = useState(false);
 
   const handleTransactionPress = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
@@ -143,6 +146,16 @@ const TransactionsScreen = () => {
     return () => backHandler.remove();
   }, [showEditTransaction]);
 
+  const handleReadSMS = async () => {
+    try {
+      // Read last 30 days of messages
+      const messages = await SMSReader.readMessages();
+      console.log('Messages:', messages);
+    } catch (error) {
+      console.error('Error reading messages:', error);
+    }
+  };
+
   return (
 
     <View style={styles.container}>
@@ -162,7 +175,7 @@ const TransactionsScreen = () => {
             <Icon name="search-outline" size={18} color={colors.text} />
             <Text style={styles.actionText}>Find</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => setShowSMSModal(true)}>
             <Icon name="mail-unread-outline" size={18} color={colors.text} />
             <Text style={styles.actionText}>SMS</Text>
           </TouchableOpacity>
@@ -294,6 +307,20 @@ const TransactionsScreen = () => {
           />
         )}
       </Modal>
+
+      <TouchableOpacity 
+        style={styles.actionButton}
+        onPress={() => setShowSMSModal(true)}
+      >
+        <Icon name="mail-unread-outline" size={18} color={colors.text} />
+        <Text style={styles.actionText}>SMS</Text>
+      </TouchableOpacity>
+
+      <SMSReaderModal
+        visible={showSMSModal}
+        onClose={() => setShowSMSModal(false)}
+        onRead={handleReadSMS}
+      />
       <ActionButtons />
     </View>
 
