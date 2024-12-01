@@ -24,3 +24,16 @@ export interface Transaction {
   date: string;
   remarks?: string;
 }
+
+
+export interface SMSTransaction {
+  id: string,
+  type: 'debit' | 'credit' | 'transfer' | 'unknown';
+  amount: number;
+  sender: string;
+  account?: string;
+  date: Date;
+  merchantName?: string;
+  balance?: number;
+  body: string;
+}

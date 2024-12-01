@@ -11,11 +11,11 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import ActionButtons from '../../components/ActionButtons';
-import { Transaction } from '../../types/Transaction';
+import { SMSTransaction, Transaction } from '../../types/Transaction';
 import { transactions } from '../../data/TransactionData';
 import EditTransactionScreen from './EditTransactionScreen';
-import { SMSReader } from '../../util/SMSHandler';
-import { SMSReaderModal } from '../../components/sms/SMSReaderModal';
+import { TransactionScannerModal } from '../../components/sms/TransactionScannerModal';
+import SMSTransactionSummary from '../../components/sms/SMSTransactionSummary';
 
 const formatDate = (dateString: string): { date: string; monthYear: string; day: string } => {
   const date = new Date(dateString);
@@ -78,7 +78,17 @@ const TransactionsScreen = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showEditTransaction, setShowEditTransaction] = useState(false);
-  const [showSMSModal, setShowSMSModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [showSMSSummary, setShowSMSSummary] = useState(false);
+  const [scannedTransactions, setScannedTransactions] = useState<SMSTransaction[]>([]);
+
+  // When scan completes
+  const handleScanComplete = (transactions: SMSTransaction[]) => {
+    console.log('transactions',transactions);
+    setScannedTransactions(transactions);
+    setShowScanner(false);
+    setShowSMSSummary(true);
+  };
 
   const handleTransactionPress = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
@@ -146,16 +156,6 @@ const TransactionsScreen = () => {
     return () => backHandler.remove();
   }, [showEditTransaction]);
 
-  const handleReadSMS = async () => {
-    try {
-      // Read last 30 days of messages
-      const messages = await SMSReader.readMessages();
-      console.log('Messages:', messages);
-    } catch (error) {
-      console.error('Error reading messages:', error);
-    }
-  };
-
   return (
 
     <View style={styles.container}>
@@ -175,7 +175,7 @@ const TransactionsScreen = () => {
             <Icon name="search-outline" size={18} color={colors.text} />
             <Text style={styles.actionText}>Find</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => setShowSMSModal(true)}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => setShowScanner(true)}>
             <Icon name="mail-unread-outline" size={18} color={colors.text} />
             <Text style={styles.actionText}>SMS</Text>
           </TouchableOpacity>
@@ -308,20 +308,34 @@ const TransactionsScreen = () => {
         )}
       </Modal>
 
-      <TouchableOpacity 
-        style={styles.actionButton}
-        onPress={() => setShowSMSModal(true)}
-      >
-        <Icon name="mail-unread-outline" size={18} color={colors.text} />
-        <Text style={styles.actionText}>SMS</Text>
-      </TouchableOpacity>
 
-      <SMSReaderModal
-        visible={showSMSModal}
-        onClose={() => setShowSMSModal(false)}
-        onRead={handleReadSMS}
+      <TransactionScannerModal
+        visible={showScanner}
+        handleScanComplete={handleScanComplete}
+        onClose={() => setShowScanner(false)}
       />
+
       <ActionButtons />
+      {showSMSSummary && (
+        <Modal
+          visible={showSMSSummary}
+          animationType="slide"
+          presentationStyle="fullScreen"
+        >
+          <SMSTransactionSummary
+            transactions={scannedTransactions}
+            onClose={() => setShowSMSSummary(false)}
+            onEdit={(transaction) => {
+              // Handle edit
+              console.log('Edit transaction:', transaction);
+            }}
+            onAdd={(transaction) => {
+              // Handle add
+              console.log('Add transaction:', transaction);
+            }}
+          />
+        </Modal>
+      )}
     </View>
 
   );

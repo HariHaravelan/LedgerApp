@@ -27,8 +27,8 @@ const EditAccountScreen: React.FC<EditAccountScreenProps> = ({
 
   // Form state
   const [formData, setFormData] = useState<AccountFormData>({
-    typeId: 0,
-    subtypeId: 0,
+    typeId: '',
+    subtypeId:'',
     name: '',
     balance: '',
     notes: '',
