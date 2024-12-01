@@ -11,8 +11,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../../constants/colors';
 import { ScanningModal } from './ScanningModal';
-import { SMSHandler } from '../../util/SMSHandler';
+import { SMSHandler } from '../../utils/SMSHandler';
 import { SMSTransaction } from '../../types/Transaction';
+import { ACCOUNTS } from '../../data/TransactionData';
 
 interface ScannerModalProps {
     visible: boolean;
@@ -45,10 +46,11 @@ export const TransactionScannerModal: React.FC<ScannerModalProps> = ({
         setIsScanning(true);
       
         try {
-          const transactions = await SMSHandler.readTransactions(
-            startDate,
-            endDate
-          );
+            const transactions = await SMSHandler.readTransactions(
+                startDate,
+                endDate,
+                ACCOUNTS
+              );
           handleScanComplete(transactions);
         } finally {
           setIsScanning(false);

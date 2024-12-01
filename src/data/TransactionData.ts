@@ -1,4 +1,5 @@
-import { Category, Account, Transaction } from '../types/Transaction';
+import { Category, Transaction } from '../types/Transaction';
+import { ACCOUNT_SUBTYPES, ACCOUNT_TYPES } from './AccountsData';
 
 export const CATEGORIES: Category[] = [
   { id: '1', name: 'Food & Dining', icon: 'restaurant', type: 'expense' },
@@ -13,15 +14,99 @@ export const CATEGORIES: Category[] = [
   { id: '10', name: 'Transfer', icon: 'ellipsis-horizontal', type: 'transfer' },
 ];
 
+// Then define the accounts data
 export const ACCOUNTS: Account[] = [
-  { id: '1', name: 'HDFC Savings', balance: 25000, type: 'bank' },
-  { id: '2', name: 'ICICI Credit Card', balance: -15000, type: 'card' },
-  { id: '3', name: 'Amazon Pay', balance: 5000, type: 'wallet' },
-  { id: '4', name: 'SBI Credit Card', balance: -150, type: 'card' },
-  { id: '5', name: 'Paytm Wallet', balance: 4567, type: 'card' },
-  { id: '6', name: 'Amex Credit Card', balance: 0, type: 'card' },
+  {
+    id: '1',
+    name: 'HDFC Savings',
+    type: ACCOUNT_TYPES[0],           // bank
+    subType: ACCOUNT_SUBTYPES[0],     // savings
+    balance: 25000,
+    institution: 'HDFC Bank',
+    lastSync: new Date().toISOString(),
+    notes: 'Primary savings account'
+  },
+  {
+    id: '2',
+    name: 'ICICI Credit Card',
+    type: ACCOUNT_TYPES[2],           // card
+    subType: ACCOUNT_SUBTYPES[6],     // credit
+    balance: -15000,
+    institution: 'ICICI Bank',
+    lastSync: new Date().toISOString(),
+    notes: 'Primary credit card'
+  },
+  {
+    id: '3',
+    name: 'Amazon Pay',
+    type: ACCOUNT_TYPES[1],           // wallet
+    subType: ACCOUNT_SUBTYPES[3],     // amazonpay
+    balance: 5000,
+    institution: 'Amazon',
+    lastSync: new Date().toISOString(),
+    notes: 'Digital wallet for online shopping'
+  },
+  {
+    id: '4',
+    name: 'SBI Credit Card',
+    type: ACCOUNT_TYPES[2],           // card
+    subType: ACCOUNT_SUBTYPES[6],     // credit
+    balance: -150,
+    institution: 'State Bank of India',
+    lastSync: new Date().toISOString(),
+    notes: 'Secondary credit card'
+  },
+  {
+    id: '5',
+    name: 'Paytm Wallet',
+    type: ACCOUNT_TYPES[1],           // wallet
+    subType: ACCOUNT_SUBTYPES[2],     // paytm
+    balance: 4567,
+    institution: 'Paytm',
+    lastSync: new Date().toISOString(),
+    notes: 'Digital wallet for daily transactions'
+  },
+  {
+    id: '6',
+    name: 'Amex Credit Card',
+    type: ACCOUNT_TYPES[2],           // card
+    subType: ACCOUNT_SUBTYPES[6],     // credit
+    balance: 0,
+    institution: 'American Express',
+    lastSync: new Date().toISOString(),
+    notes: 'Premium credit card'
+  },
+  {
+    id: '7',
+    name: 'HDFC Mutual Funds',
+    type: ACCOUNT_TYPES[3],           // investments
+    subType: ACCOUNT_SUBTYPES[15],    // mutual_funds
+    balance: 50000,
+    institution: 'HDFC Mutual Fund',
+    lastSync: new Date().toISOString(),
+    notes: 'Long term investments'
+  },
+  {
+    id: '8',
+    name: 'Zerodha Stocks',
+    type: ACCOUNT_TYPES[3],           // investments
+    subType: ACCOUNT_SUBTYPES[14],    // stocks
+    balance: 75000,
+    institution: 'Zerodha',
+    lastSync: new Date().toISOString(),
+    notes: 'Stock trading account'
+  },
+  {
+    id: '9',
+    name: 'SBI Home Loan',
+    type: ACCOUNT_TYPES[4],           // loan
+    subType: ACCOUNT_SUBTYPES[10],    // home
+    balance: -2500000,
+    institution: 'State Bank of India',
+    lastSync: new Date().toISOString(),
+    notes: 'Home loan EMI due on 5th'
+  }
 ];
-
 
 export const transactions: Transaction[] = [
   // Today

@@ -1,11 +1,5 @@
 export type TransactionType = 'expense' | 'income' | 'transfer';
-
-export interface Account {
-  id: string;
-  name: string;
-  balance: number;
-  type: string;
-}
+export type SMSTransactionType = 'debit' | 'credit' | 'transfer' | 'unknown';
 
 export interface Category {
   id: string;
@@ -28,7 +22,7 @@ export interface Transaction {
 
 export interface SMSTransaction {
   id: string,
-  type: 'debit' | 'credit' | 'transfer' | 'unknown';
+  type: SMSTransactionType;
   amount: number;
   sender: string;
   account?: string;
