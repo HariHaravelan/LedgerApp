@@ -7,15 +7,38 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import AddCategoryScreen from '../category/AddCategoryScreen';
 import AddAccountScreen from '../account/AddAccountScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SetupWizardScreen from './SetupWizardScreen';
+const SETUP_COMPLETED_KEY = '@ledger_setup_completed';
 
 const SettingsScreen = () => {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
+  
+  const resetSetup = async () => {
+    try {
+      await AsyncStorage.removeItem(SETUP_COMPLETED_KEY);
+      setShowSetupWizard(true);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to reset setup');
+    }
+  };
+
+  const handleSetupComplete = async () => {
+    try {
+      await AsyncStorage.setItem(SETUP_COMPLETED_KEY, 'true');
+      setShowSetupWizard(false);
+    } catch (error) {
+      console.error('Error saving setup status:', error);
+    }
+  };
 
   const SettingSection: React.FC<{
     title: string;
@@ -112,8 +135,33 @@ const SettingsScreen = () => {
           <SettingRow label="Terms of Service" />
           <SettingRow label="Privacy Policy" />
         </SettingSection>
+         {/* Development Section - only visible in dev mode */}
+         {__DEV__ && (
+          <SettingSection title="Development" icon="construct">
+            <SettingRow
+              label="Run Setup Wizard"
+              icon="reload-outline"
+              iconColor="#6366F1"
+              onPress={() => {
+                Alert.alert(
+                  'Reset Setup',
+                  'This will launch the setup wizard. Continue?',
+                  [
+                    {
+                      text: 'Cancel',
+                      style: 'cancel',
+                    },
+                    {
+                      text: 'Continue',
+                      onPress: resetSetup,
+                    },
+                  ]
+                );
+              }}
+            />
+          </SettingSection>
+        )}
       </ScrollView>
-
       {/* Add Category Modal */}
       <Modal
         visible={showAddCategory}
@@ -130,6 +178,14 @@ const SettingsScreen = () => {
         presentationStyle="pageSheet"
       >
         <AddAccountScreen onClose={() => setShowAddAccount(false)} />
+      </Modal>
+      {/* Setup Wizard Modal */}
+      <Modal
+        visible={showSetupWizard}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SetupWizardScreen onComplete={handleSetupComplete} />
       </Modal>
     </View>
   );

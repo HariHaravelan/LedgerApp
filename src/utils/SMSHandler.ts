@@ -4,6 +4,15 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
 import { SMSTransaction, SMSTransactionType } from '../types/Transaction';
 
+export interface DetectedAccount {
+  id: string;
+  institution: string;
+  accountNumber: string;
+  type: string;
+  lastTransaction: Date;
+  senderIds: Set<string>;
+}
+
 export class SMSHandler {
   // Transaction type detection keywords
   private static readonly KEYWORDS = {
@@ -259,4 +268,155 @@ export class SMSHandler {
       throw error;
     }
   }
+
+
+  private static readonly BANK_PATTERNS = {
+    hdfc: {
+      name: 'HDFC Bank',
+      patterns: [/hdfc/i, /hdfcbank/i],
+      accounts: {
+        savings: /savings|sa\/c|sav acc/i,
+        current: /current|ca\/c|cur acc/i,
+        credit: /credit card|cc/i
+      }
+    },
+    sbi: {
+      name: 'State Bank of India',
+      patterns: [/sbi/i, /state bank/i],
+      accounts: {
+        savings: /savings|sa\/c|sav acc/i,
+        current: /current|ca\/c|cur acc/i,
+        credit: /credit card|cc/i
+      }
+    },
+    icici: {
+      name: 'ICICI Bank',
+      patterns: [/icici/i],
+      accounts: {
+        savings: /savings|sa\/c|sav acc/i,
+        current: /current|ca\/c|cur acc/i,
+        credit: /credit card|cc/i
+      }
+    },
+    axis: {
+      name: 'Axis Bank',
+      patterns: [/axis/i],
+      accounts: {
+        savings: /savings|sa\/c|sav acc/i,
+        current: /current|ca\/c|cur acc/i,
+        credit: /credit card|cc/i
+      }
+    }
+  };
+
+  /**
+   * Extract account number or last digits from SMS
+   */
+  private static extractAccountNumber(body: string): string | undefined {
+    const patterns = [
+      /(?:a\/c|acc(?:ount)?|(?:card))(?:\sending)?\s+(?:[Xx*]+)?([0-9]{4})/i,
+      /(?:[Xx*]+)([0-9]{4})/
+    ];
+
+    for (const pattern of patterns) {
+      const match = body.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Detect bank accounts from SMS messages
+   */
+  static async detectAccounts(
+    startDate: Date = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) // Last 6 months
+  ): Promise<DetectedAccount[]> {
+    try {
+      const hasPermission = await this.requestPermission();
+      if (!hasPermission) {
+        throw new Error('SMS permission not granted');
+      }
+
+      const filter = JSON.stringify({
+        box: 'inbox',
+        minDate: startDate.getTime(),
+        maxDate: new Date().getTime(),
+      });
+
+      return new Promise((resolve, reject) => {
+        SmsAndroid.list(
+          filter,
+          (error: any) => reject(error),
+          (_count: number, messages: string) => {
+            try {
+              const parsedMessages = JSON.parse(messages);
+              const accountsMap = new Map<string, DetectedAccount>();
+
+              parsedMessages.forEach((sms: any) => {
+                if (typeof sms.body !== 'string') return;
+
+                const body = sms.body.toLowerCase();
+                const sender = sms.address?.toLowerCase() || '';
+
+                // Check each bank's patterns
+                for (const [bankId, bank] of Object.entries(this.BANK_PATTERNS)) {
+                  if (!bank.patterns.some(pattern => body.match(pattern) || sender.match(pattern))) {
+                    continue;
+                  }
+
+                  // Try to identify account type and number
+                  const accountNumber = this.extractAccountNumber(body);
+                  if (!accountNumber) continue;
+
+                  const key = `${bankId}-${accountNumber}`;
+                  if (accountsMap.has(key)) {
+                    // Update last transaction date if more recent
+                    const existing = accountsMap.get(key)!;
+                    const messageDate = new Date(parseInt(sms.date));
+                    if (messageDate > existing.lastTransaction) {
+                      existing.lastTransaction = messageDate;
+                      accountsMap.set(key, existing);
+                    }
+                    continue;
+                  }
+
+                  // Determine account type
+                  let accountType = 'savings';
+                  for (const [type, pattern] of Object.entries(bank.accounts)) {
+                    if (body.match(pattern)) {
+                      accountType = type;
+                      break;
+                    }
+                  }
+
+                  accountsMap.set(key, {
+                    id: key,
+                    institution: bank.name,
+                    accountNumber,
+                    type: accountType,
+                    lastTransaction: new Date(parseInt(sms.date)),
+                    senderIds: new Set([sender])
+                  });
+                }
+              });
+
+              // Convert map to array and sort by last transaction date
+              const accounts = Array.from(accountsMap.values())
+                .sort((a, b) => b.lastTransaction.getTime() - a.lastTransaction.getTime());
+
+              resolve(accounts);
+            } catch (error) {
+              reject(error);
+            }
+          }
+        );
+      });
+    } catch (error) {
+      console.error('Error detecting accounts:', error);
+      throw error;
+    }
+  }
+
 }

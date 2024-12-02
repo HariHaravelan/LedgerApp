@@ -36,3 +36,21 @@ export const themeColors = {
   success: '#38A169',
   error: '#E53E3E', 
 };
+
+export const WIZARD_COLORS = {
+  gradient1: '#4F46E5', // Indigo - but used more sparingly now
+  accent1: '#10B981', // Emerald green for success/actions
+  accent2: '#F59E0B', // Amber for highlights
+  accent3: '#6366F1', // Violet for selection
+  surface: '#F8FAFF', // Light background
+  cardHover: 'rgba(99, 102, 241, 0.08)', // Light violet for hover
+};
+export const BANK_COLORS: { [key: string]: string } = {
+  'HDFC Bank': '#004C8F',     // HDFC Blue
+  'ICICI Bank': '#F58220',    // ICICI Orange
+  'State Bank of India': '#2D5BA4', // SBI Blue
+  'Axis Bank': '#97144C',     // Axis Burgundy
+  'Kotak Bank': '#AF272F',    // Kotak Red
+  'Yes Bank': '#002A54',      // Yes Bank Blue
+  'default': WIZARD_COLORS.accent3
+};
