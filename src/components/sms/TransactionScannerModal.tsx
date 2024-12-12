@@ -11,9 +11,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../../constants/colors';
 import { ScanningModal } from './ScanningModal';
-import { SMSHandler } from '../../utils/SMSHandler';
 import { SMSTransaction } from '../../types/Transaction';
 import { ACCOUNTS } from '../../data/TransactionData';
+import { SMSHandler } from '../../utils/SMSHandler';
 
 interface ScannerModalProps {
     visible: boolean;

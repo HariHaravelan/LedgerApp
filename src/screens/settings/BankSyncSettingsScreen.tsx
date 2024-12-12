@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import { SMSHandler } from '../../utils/SMSHandler';
 
+
 const BankSyncSettingsScreen = () => {
   const [autoSync, setAutoSync] = useState(false);
   const [notifications, setNotifications] = useState(true);
@@ -23,15 +24,6 @@ const BankSyncSettingsScreen = () => {
   const handleRescan = async () => {
     try {
       setIsScanning(true);
-      
-      const hasPermission = await SMSHandler.requestPermission();
-      if (!hasPermission) {
-        Alert.alert(
-          'Permission Required',
-          'SMS permission is needed to scan for bank accounts.'
-        );
-        return;
-      }
 
       // Start date 6 months ago for initial scan
       const startDate = new Date();
