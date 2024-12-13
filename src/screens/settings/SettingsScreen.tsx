@@ -14,7 +14,7 @@ import { colors } from '../../constants/colors';
 import AddCategoryScreen from '../category/AddCategoryScreen';
 import AddAccountScreen from '../account/AddAccountScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SetupWizardScreen from './SetupWizardScreen';
+import SetupWizardScreen from './setup/SetupWizardScreen';
 const SETUP_COMPLETED_KEY = '@ledger_setup_completed';
 
 const SettingsScreen = () => {

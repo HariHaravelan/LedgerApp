@@ -9,7 +9,7 @@ import StatsScreen from './src/screens/stats/StatsScreen';
 import { colors } from './src/constants/colors';
 import AccountsScreen from './src/screens/account/AccountScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SetupWizardScreen from './src/screens/settings/SetupWizardScreen';
+import SetupWizardScreen from './src/screens/settings/setup/SetupWizardScreen';
 
 // Key for AsyncStorage
 const SETUP_COMPLETED_KEY = '@ledger_setup_completed';
