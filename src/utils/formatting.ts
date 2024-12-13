@@ -7,3 +7,7 @@ export const formatAmount = (amount: number): string => {
     const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
     return `₹${formatted}`;
   };  
+
+  export const truncateText = (text: string, maxLength: number) => {
+    return text.length > maxLength ? text.substring(0, maxLength - 2) + '...' : text;
+  };

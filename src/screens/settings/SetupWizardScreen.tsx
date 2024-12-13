@@ -10,13 +10,15 @@ import {
     Platform,
     Animated,
     Alert,
+    Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { BANK_COLORS, colors, WIZARD_COLORS } from '../../constants/colors';
 import { DetectedAccount } from '../../types/SMSTypes';
 import { SMSHandler } from '../../utils/SMSHandler';
+import { truncateText } from '../../utils/formatting';
 
-
+const { width: screenWidth } = Dimensions.get('window');
 interface SetupWizardProps {
     onComplete: () => void;
 }
@@ -36,6 +38,59 @@ const SetupWizardScreen: React.FC<SetupWizardProps> = ({ onComplete }) => {
             useNativeDriver: false,
         }).start();
     }, [step]);
+
+    const handleEdit = (account: DetectedAccount) => {
+        // Handle edit functionality
+        console.log('Edit account:', account.id);
+    };
+
+    const groupAccountsByType = (accounts: DetectedAccount[]) => {
+        const groups = accounts.reduce((acc, account) => {
+            if (!acc[account.type]) {
+                acc[account.type] = [];
+            }
+            acc[account.type].push(account);
+            return acc;
+        }, {} as Record<string, DetectedAccount[]>);
+
+        // Sort accounts within each group by institution name
+        Object.keys(groups).forEach(type => {
+            groups[type].sort((a, b) => a.institution.localeCompare(b.institution));
+        });
+
+        return groups;
+    };
+
+    const getTypeIcon = (type: string) => {
+        switch (type.toLowerCase()) {
+            case 'wallet':
+                return 'wallet-outline';
+            case 'account':
+                return 'cash-outline';
+            case 'card':
+                return 'card-outline';
+            case 'loan':
+                return 'trending-up-outline';
+            default:
+                return 'business-outline';
+        }
+    };
+
+    const formatLastTransaction = (date: Date) => {
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+        if (days === 0) {
+            return 'Today';
+        } else if (days === 1) {
+            return 'Yesterday';
+        } else if (days < 7) {
+            return `${days} days ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    };
 
     const handleScanAccounts = async () => {
         try {
@@ -84,6 +139,54 @@ const SetupWizardScreen: React.FC<SetupWizardProps> = ({ onComplete }) => {
                 return '';
         }
     };
+
+    const renderAccountCard = (account: DetectedAccount) => (
+        <TouchableOpacity
+            key={account.id}
+            style={[
+                styles.accountCard,
+                selectedAccounts.has(account.id) && styles.accountCardSelected
+            ]}
+            onPress={() => toggleAccount(account.id)}
+            activeOpacity={0.7}
+        >
+            {/* Selection indicator */}
+            <View style={[
+                styles.selectionIndicator,
+                selectedAccounts.has(account.id) && styles.selectionIndicatorSelected
+            ]}>
+                <Icon
+                    name={selectedAccounts.has(account.id) ? "checkmark-circle" : "ellipse-outline"}
+                    size={20}
+                    color={selectedAccounts.has(account.id) ? "#2E5BFF" : colors.border}
+                />
+            </View>
+
+            {/* Account Info */}
+            <View style={styles.mainContent}>
+                <View style={styles.bankInfo}>
+                    <Text style={styles.bankName}> {truncateText(account.institution, 20)}</Text>
+                    <Text style={styles.accountNumber}>•••• {account.accountNumber}</Text>
+                </View>
+
+                <View style={styles.transactionInfo}>
+                    <Icon name="time-outline" size={12} color={colors.textLight} />
+                    <Text style={styles.lastSync}>
+                        Last transaction: {formatLastTransaction(new Date(account.lastTransaction))}
+                    </Text>
+                </View>
+            </View>
+
+            {/* Edit Button */}
+            <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => handleEdit(account)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+                <Icon name="pencil" size={16} color={colors.textLight} />
+            </TouchableOpacity>
+        </TouchableOpacity>
+    );
 
     const renderStep = () => {
         switch (step) {
@@ -139,85 +242,61 @@ const SetupWizardScreen: React.FC<SetupWizardProps> = ({ onComplete }) => {
                         </View>
 
                         {/* Action Button */}
-                        <TouchableOpacity
-                            style={[styles.scanButton, isScanning && styles.scanButtonDisabled]}
-                            onPress={handleScanAccounts}
-                            disabled={isScanning}
-                        >
-                            <View style={styles.scanButtonContent}>
-                                <Icon
-                                    name={isScanning ? 'sync' : 'search-outline'}
-                                    size={24}
-                                    color={colors.white}
-                                    style={[isScanning && styles.spinningIcon]}
-                                />
-                                <Text style={styles.scanButtonText}>
-                                    {isScanning ? 'Detecting Accounts...' : 'Start Detection'}
-                                </Text>
-                            </View>
-                        </TouchableOpacity>
-
+                        <View style={styles.actionContainer}>
+                            <TouchableOpacity
+                                style={[styles.scanButton, isScanning && styles.scanButtonDisabled]}
+                                onPress={handleScanAccounts}
+                                disabled={isScanning}
+                            >
+                                <View style={styles.scanButtonContent}>
+                                    <Icon
+                                        name={isScanning ? 'sync' : 'search-outline'}
+                                        size={24}
+                                        color={colors.white}
+                                        style={[isScanning && styles.spinningIcon]}
+                                    />
+                                    <Text style={styles.scanButtonText}>
+                                        {isScanning ? 'Detecting Accounts...' : 'Start Detection'}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
 
                     </View>
                 );
-
             case 2:
-                return (
-                    <View style={styles.stepContent}>
-                      
+                const groupedAccounts = groupAccountsByType(detectedAccounts);
 
-                        {/* Accounts List */}
+                return (
+                    <View style={styles.stepContentContainer}>
                         <ScrollView
                             style={styles.accountsList}
+                            contentContainerStyle={styles.accountsListContent}
                             showsVerticalScrollIndicator={false}
                         >
-                            {detectedAccounts.map(account => (
-                                <TouchableOpacity
-                                    key={account.id}
-                                    style={[
-                                        styles.accountCard,
-                                        selectedAccounts.has(account.id) && styles.accountCardSelected
-                                    ]}
-                                    onPress={() => toggleAccount(account.id)}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={styles.accountHeader}>
-                                        <View style={styles.accountInfo}>
-                                            <View style={[
-                                                styles.bankBadge,
-                                                { backgroundColor: BANK_COLORS[account.institution] || BANK_COLORS.default }
-                                            ]}>
-                                                <Text style={styles.bankBadgeText}>{account.institution}</Text>
-                                            </View>
-
-                                            <Text style={styles.accountNumber}>
-                                                ••••{account.accountNumber}
-                                            </Text>
-                                            <Text style={styles.accountType}>
-                                                {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
-                                            </Text>
-                                        </View>
-                                        <View style={[
-                                            styles.checkCircle,
-                                            selectedAccounts.has(account.id) && styles.checkCircleSelected
-                                        ]}>
-                                            {selectedAccounts.has(account.id) && (
-                                                <Icon name="checkmark" size={16} color={colors.white} />
-                                            )}
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.accountMeta}>
-                                        <Icon name="time-outline" size={14} color={colors.textLight} />
-                                        <Text style={styles.lastActivity}>
-                                            Last activity: {new Date(account.lastTransaction).toLocaleDateString()}
+                            {Object.entries(groupedAccounts).map(([type, accounts]) => (
+                                <View key={type} style={styles.accountGroup}>
+                                    <View style={styles.groupHeader}>
+                                        <Icon name={getTypeIcon(type)} size={18} color={colors.text} />
+                                        <Text style={styles.groupTitle}>
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
                                         </Text>
+                                        <View style={styles.accountCount}>
+                                            <Text style={styles.accountCountText}>{accounts.length}</Text>
+                                        </View>
                                     </View>
-                                </TouchableOpacity>
+
+                                    {accounts.map((account, index) => (
+                                        <View key={account.id}>
+                                            {renderAccountCard(account)}
+                                            {index < accounts.length - 1 && <View style={styles.cardDivider} />}
+                                        </View>
+                                    ))}
+                                </View>
                             ))}
+                            <View style={styles.scrollPadding} />
                         </ScrollView>
 
-                        {/* Action Button */}
                         <View style={styles.actionContainer}>
                             <TouchableOpacity
                                 style={[
@@ -235,25 +314,67 @@ const SetupWizardScreen: React.FC<SetupWizardProps> = ({ onComplete }) => {
                         </View>
                     </View>
                 );
-
             case 3:
                 return (
                     <View style={styles.stepContent}>
-                        <View style={styles.successContainer}>
-                            <Icon name="checkmark-circle" size={80} color={colors.primary} />
-                            <Text style={styles.successText}>
-                                {selectedAccounts.size} {selectedAccounts.size === 1 ? 'account' : 'accounts'} added successfully
-                            </Text>
+                        {/* Success Icon Section */}
+                        <View style={styles.successContent}>
+                            <View style={styles.successIconContainer}>
+                                {/* Using same styling pattern as step 1 icons */}
+                                <View style={[styles.iconCircle, { backgroundColor: `${WIZARD_COLORS.success}15` }]}>
+                                    <Icon name="checkmark" size={40} color={WIZARD_COLORS.success} />
+                                </View>
+                            </View>
+
+                            {/* Success Messages */}
+                            <View style={styles.successMessages}>
+                                <Text style={styles.accountsConnected}>
+                                    {selectedAccounts.size} {selectedAccounts.size === 1 ? 'account' : 'accounts'} connected
+                                </Text>
+                                <Text style={styles.successDescription}>
+                                    Track your transactions easily with SMS notifications. Just tap the SMS icon whenever you want to scan for new transactions.
+                                </Text>
+                            </View>
+
+                            {/* Tips Section - using same styling as step 1 features */}
+                            <View style={styles.featuresList}>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIcon, { backgroundColor: `${WIZARD_COLORS.success}10` }]}>
+                                        <Icon name="scan-outline" size={24} color={WIZARD_COLORS.success} />
+                                    </View>
+                                    <View style={styles.featureContent}>
+                                        <Text style={styles.featureTitle}>SMS Scanner</Text>
+                                        <Text style={styles.featureDescription}>
+                                            Import transactions from bank messages
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIcon, { backgroundColor: `${colors.primary}10` }]}>
+                                        <Icon name="create-outline" size={24} color={colors.primary} />
+                                    </View>
+                                    <View style={styles.featureContent}>
+                                        <Text style={styles.featureTitle}>Manual Entry</Text>
+                                        <Text style={styles.featureDescription}>
+                                            Add and edit transactions as needed
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
                         </View>
+
+                        {/* Action Button - using same green as continue button */}
                         <TouchableOpacity
-                            style={styles.completeButton}
+                            style={styles.getStartedButton}
                             onPress={onComplete}
                         >
-                            <Text style={styles.completeButtonText}>Get Started</Text>
+                            <Text style={styles.getStartedText}>Get Started</Text>
                             <Icon name="arrow-forward" size={20} color={colors.white} />
                         </TouchableOpacity>
                     </View>
                 );
+
 
             default:
                 return null;
@@ -314,19 +435,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         backgroundColor: colors.white,
     },
-    accountsList: {
-        flex: 1,
-        paddingHorizontal: 20,
-    },
-    continueButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#10B981', // Green color
-        padding: 16,
-        borderRadius: 12,
-        gap: 8,
-    },
+
     continueButtonDisabled: {
         opacity: 0.6,
     },
@@ -407,100 +516,241 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 12,
     },
-    accountCard: {
-        backgroundColor: colors.white,
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: colors.border,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 3,
-            },
-            android: {
-                elevation: 1,
-            },
-        }),
-    },
-    accountCardSelected: {
-        borderColor: colors.primary,
-        borderWidth: 2,
-        backgroundColor: `${colors.primary}02`,
-    },
-    accountHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    accountInfo: {
+    groupTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.text,
         flex: 1,
-        gap: 6,
     },
-    accountNumber: {
+    accountCount: {
+        backgroundColor: `${colors.primary}15`,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 12,
+    },
+    accountCountText: {
+        fontSize: 12,
+        color: colors.primary,
+        fontWeight: '500',
+    },
+    accountCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.white,
+        padding: 16,
+        marginHorizontal: 16,
+    },
+
+    // Add a new divider style
+    cardDivider: {
+        height: 1,
+        backgroundColor: colors.border,
+        marginHorizontal: 10,
+    },
+
+    // Update accountGroup style to remove any conflicting margins
+    accountGroup: {
+        marginBottom: 16,
+    },
+
+    // Update accountCardSelected to match the new flat design
+    accountCardSelected: {
+        backgroundColor: `${colors.primary}08`,
+        borderLeftColor: colors.income,
+    },
+
+    // Update the accountGroup style for the new stacked look
+
+
+    // Update groupHeader for better visual hierarchy
+    groupHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.background,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+
+    // Update accountsList styles
+    accountsList: {
+        flex: 1,
+    },
+
+    accountsListContent: {
+        paddingVertical: 12,
+    },
+
+    // Helper separator style for cards
+    separator: {
+        height: 1,
+        backgroundColor: colors.border,
+        marginHorizontal: 16,
+    },
+
+    // Update mainContent for better alignment
+    mainContent: {
+        flex: 1,
+        marginLeft: 12,
+    },
+
+    // Update bankInfo for cleaner layout
+    bankInfo: {
+        marginBottom: 4,
+    },
+
+    // Update selection indicator position
+    selectionIndicator: {
+        marginRight: 16,
+    },
+
+    // Update edit button to be less prominent
+    editButton: {
+        padding: 8,
+        marginLeft: 8,
+    },
+
+    selectionIndicatorSelected: {
+        transform: [{ scale: 1.1 }],
+    },
+    bankName: {
         fontSize: 15,
         fontWeight: '600',
         color: colors.text,
     },
-    accountType: {
-        fontSize: 13,
+    accountNumber: {
+        fontSize: 14,
         color: colors.textLight,
-        backgroundColor: `${colors.primary}08`,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 4,
-        alignSelf: 'flex-start',
     },
-    accountMeta: {
+    transactionInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 12,
         gap: 4,
     },
-    lastActivity: {
+    lastSync: {
         fontSize: 12,
         color: colors.textLight,
     },
-    actionContainer: {
-        padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        backgroundColor: colors.white,
+
+    bankContainer: {
+        flex: 1,
+        borderRadius: 8,
+        padding: 8,
     },
 
-    continueButtonText: {
+    bankLogo: {
+        width: 36,
+        height: 36,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    bankInitials: {
         color: colors.white,
-        fontSize: 15,
+        fontSize: 5,
         fontWeight: '600',
+    },
+    accountInfo: {
+        flex: 1,
+    },
+
+    stepContentContainer: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    scrollPadding: {
+        height: 20, // Extra padding at the bottom of scroll content
+    },
+
+    actionContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: colors.white,
+        padding: 16,
+        paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: -4 },
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+            },
+            android: {
+                elevation: 8,
+            },
+        }),
+    },
+    continueButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#10B981',
+        padding: 16,
+        borderRadius: 12,
+        gap: 8,
+    },
+
+    cardLayout: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    leftContent: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    bankLogoContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: `${colors.primary}08`,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     bankBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-        marginBottom: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
         alignSelf: 'flex-start',
     },
     bankBadgeText: {
         color: colors.white,
         fontWeight: '600',
-        fontSize: 13,
+        fontSize: 12,
     },
-
-    bankName: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: colors.text,
-        marginBottom: 4,
+    accountDetails: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
+    accountTypeTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: `${colors.primary}10`,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+        gap: 4,
+    },
+    accountType: {
+        fontSize: 12,
+        color: colors.primary,
+        fontWeight: '500',
     },
     checkCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
         borderWidth: 2,
         borderColor: colors.border,
         alignItems: 'center',
@@ -508,8 +758,26 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
     },
     checkCircleSelected: {
-        backgroundColor: WIZARD_COLORS.accent1,
-        borderColor: WIZARD_COLORS.accent1,
+        backgroundColor: '#10B981', // Matching the border color
+        borderColor: '#10B981',
+    },
+    accountMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: `${colors.border}40`,
+        gap: 4,
+    },
+    lastActivity: {
+        fontSize: 12,
+        color: colors.textLight,
+    },
+    continueButtonText: {
+        color: colors.white,
+        fontSize: 15,
+        fontWeight: '600',
     },
     successContainer: {
         flex: 1,
@@ -547,10 +815,108 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 8,
     },
+    successContent: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    successIconContainer: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    iconCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    successMessages: {
+        alignItems: 'center',
+        marginBottom: 32,
+    },
+    accountsConnected: {
+        fontSize: 17,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    successDescription: {
+        fontSize: 14,
+        color: colors.textLight,
+        textAlign: 'center',
+        lineHeight: 20,
+        paddingHorizontal: 20,
+    },
+    featuresList: {
+        paddingHorizontal: 16,
+        gap: 20,
+    },
+    featureItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    featureIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 16,
+    },
+    featureContent: {
+        flex: 1,
+    },
+    featureTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: 4,
+    },
+    featureDescription: {
+        fontSize: 14,
+        color: colors.textLight,
+    },
+    getStartedButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: WIZARD_COLORS.success,
+        padding: 16,
+        borderRadius: 12,
+        gap: 8,
+        marginHorizontal: 20,
+        marginBottom: Platform.OS === 'ios' ? 34 : 24,
+    },
+    getStartedText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.white,
+    },
     stepContent: {
         flex: 1,
-        padding: 24,
+        backgroundColor: colors.white,
     },
+
+    tipsContainer: {
+        width: '100%',
+        gap: 12,
+    },
+    tipCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: colors.background,
+        borderRadius: 12,
+        gap: 12,
+    },
+    tipText: {
+        flex: 1,
+        fontSize: 14,
+        color: colors.text,
+    },
+
 
     scanButtonText: {
         color: colors.white,
@@ -561,11 +927,6 @@ const styles = StyleSheet.create({
         ...(Platform.OS === 'ios' ? {
             transform: [{ rotate: '360deg' }],
         } : {}),
-    },
-    accountDetails: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     lastTransaction: {
@@ -604,44 +965,8 @@ const styles = StyleSheet.create({
         gap: 16,
         marginBottom: 24,
     },
-    iconCircle: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    featuresList: {
-        marginBottom: 32,
-        padding: 16,
-    },
-    featureItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    featureIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: `${colors.primary}10`,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 16,
-    },
-    featureContent: {
-        flex: 1,
-    },
-    featureTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: colors.text,
-        marginBottom: 4,
-    },
-    featureDescription: {
-        fontSize: 14,
-        color: colors.textLight,
-    },
+
+
     scanButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',

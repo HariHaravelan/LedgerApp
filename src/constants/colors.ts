@@ -44,6 +44,7 @@ export const WIZARD_COLORS = {
   accent3: '#6366F1', // Violet for selection
   surface: '#F8FAFF', // Light background
   cardHover: 'rgba(99, 102, 241, 0.08)', // Light violet for hover
+  success: '#10B981',
 };
 export const BANK_COLORS: { [key: string]: string } = {
   'HDFC Bank': '#004C8F',     // HDFC Blue

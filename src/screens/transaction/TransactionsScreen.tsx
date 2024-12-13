@@ -16,6 +16,7 @@ import { transactions } from '../../data/TransactionData';
 import EditTransactionScreen from './EditTransactionScreen';
 import { TransactionScannerModal } from '../../components/sms/TransactionScannerModal';
 import SMSTransactionSummary from '../../components/sms/SMSTransactionSummary';
+import { truncateText } from '../../utils/formatting';
 
 const formatDate = (dateString: string): { date: string; monthYear: string; day: string } => {
   const date = new Date(dateString);
@@ -27,10 +28,6 @@ const formatDate = (dateString: string): { date: string; monthYear: string; day:
     }),
     day: date.toLocaleDateString('en-US', { weekday: 'short' })
   };
-};
-
-const truncateText = (text: string, maxLength: number) => {
-  return text.length > maxLength ? text.substring(0, maxLength - 2) + '...' : text;
 };
 
 const formatAmount = (amount: number): string => {
