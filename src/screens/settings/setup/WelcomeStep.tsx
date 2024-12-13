@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
+    marginTop:24,
     marginBottom: 24,
   },
   iconCircle: {
