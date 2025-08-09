@@ -1,4 +1,5 @@
-import { Category, Transaction } from '../types/Transaction';
+import type { Category, Transaction } from '../types/Transaction';
+import type { Account } from '../types/Account';
 import { ACCOUNT_SUBTYPES, ACCOUNT_TYPES } from './AccountsData';
 
 export const CATEGORIES: Category[] = [

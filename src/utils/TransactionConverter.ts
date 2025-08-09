@@ -1,7 +1,7 @@
 // src/utils/TransactionConverter.ts
 
-import { SMSTransaction, SMSTransactionType, TransactionType } from '../types/Transaction';
-import { Transaction, Category } from '../types/Transaction';
+import type { SMSTransaction, SMSTransactionType, TransactionType, Transaction, Category } from '../types/Transaction';
+import type { Account } from '../types/Account';
 import { CategoryMatcher } from './CategoryMatcher';
 
 interface TransactionConverterConfig {
@@ -21,7 +21,10 @@ export class TransactionConverter {
   // Find the best matching category based on SMS content and type
   private findCategory(sms: SMSTransaction): Category {
     // Use CategoryMatcher to find the appropriate category
-    const suggestedCategory = CategoryMatcher.findCategory(sms.body, sms.type);
+    const suggestedCategory = CategoryMatcher.findCategory(
+      sms.body,
+      sms.type as 'credit' | 'debit'
+    );
     
     // Find matching category from available categories
     const matchedCategory = this.config.categories.find(

@@ -1,5 +1,6 @@
 import { DetectedAccount } from "../types/SMSTypes";
-import { SMSTransaction } from "../types/Transaction";
+import type { SMSTransaction } from "../types/Transaction";
+import type { Account } from '../types/Account';
 import { AccountDetector } from "./sms/AccountDetector";
 import { PermissionManager } from "./sms/PermissionManager";
 import { TransactionParser } from "./sms/TransactionParser";

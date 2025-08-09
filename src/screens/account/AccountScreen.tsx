@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../constants/colors';
 import { ACCOUNT_TYPES, accounts } from '../../data/AccountsData';
 import EditAccountScreen from './EditAccountScreen';
+import type { AccountType, Account } from '../../types/Account';
 
 const formatAmount = (amount: number): string => {
   const isNegative = amount < 0;

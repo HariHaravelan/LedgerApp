@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Category, Account } from '../../types/Transaction';
+import type { Category } from '../../types/Transaction';
 import { colors } from '../../constants/colors';
 
 interface CategorySelectorProps {
