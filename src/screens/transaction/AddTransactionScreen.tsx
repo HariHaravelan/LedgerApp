@@ -33,7 +33,7 @@ const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({ onClose }) 
     remarks: '',
   });
 
-  const [transferformData, setTransferFormData] = useState<BaseFormData>({
+  const [transferFormData, setTransferFormData] = useState<BaseFormData>({
     amount: '',
     categoryId:'',
     accountId: '',
@@ -107,7 +107,7 @@ const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({ onClose }) 
           )}
           {transactionType === 'transfer' && (
             <TransferForm
-              data={transferformData}
+              data={transferFormData}
               onChange={setTransferFormData}
               accounts={ACCOUNTS}
               onSave={() => {/* handle save */ }}
