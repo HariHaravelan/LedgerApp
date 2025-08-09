@@ -6,6 +6,7 @@ import {
 import { colors } from '../../constants/colors';
 import AccountForm from '../../components/forms/AccountForm';
 import Header from '../../components/Header';
+import type { AccountFormData } from '../../types/Account';
 
 
 // Main Component

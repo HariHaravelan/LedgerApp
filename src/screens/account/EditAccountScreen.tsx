@@ -7,6 +7,7 @@ import {
 import { colors } from '../../constants/colors';
 import Header from '../../components/Header';
 import AccountForm from '../../components/forms/AccountForm';
+import type { Account, AccountFormData } from '../../types/Account';
 
 interface EditAccountScreenProps {
   onClose: () => void;

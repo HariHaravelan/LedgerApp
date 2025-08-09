@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import type { CustomDropdownProps } from "../../types/Account";
 
 export const CustomDropdown: React.FC<CustomDropdownProps> = ({
     label,

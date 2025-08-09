@@ -7,7 +7,8 @@ import {
   Platform,
 } from 'react-native';
 import { colors } from '../../constants/colors';
-import { Account, Category } from '../../types/Transaction';
+import type { Category } from '../../types/Transaction';
+import type { Account } from '../../types/Account';
 import { AmountInput } from '../transaction/AmountInput';
 import { CategorySelector } from '../transaction/CategorySelector';
 import { AccountSelector } from '../transaction/AccountSelector';

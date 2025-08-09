@@ -1,5 +1,7 @@
 // src/utils/CategoryMatcher.ts
 
+import type { Account } from '../types/Account';
+
 interface CategoryKeywords {
     [key: string]: {
       keywords: string[];

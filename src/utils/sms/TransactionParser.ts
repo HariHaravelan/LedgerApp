@@ -1,4 +1,5 @@
-import { SMSTransaction, SMSTransactionType } from "../../types/Transaction";
+import type { SMSTransaction, SMSTransactionType } from "../../types/Transaction";
+import type { Account } from "../../types/Account";
 
 
 export class TransactionParser {

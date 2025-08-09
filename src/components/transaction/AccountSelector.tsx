@@ -10,7 +10,7 @@ import {
     Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Account } from '../../types/Transaction';
+import type { Account } from '../../types/Account';
 import { colors } from '../../constants/colors';
 
 interface AccountSelectorProps {

@@ -1,8 +1,7 @@
+export type InvestmentType = 'fd' | 'rd' | 'stocks' | 'mutual_funds' | 'gold';
+export type MainAccountType = 'bank' | 'wallet' | 'card' | 'loan' | 'investment';
 
-type InvestmentType = 'fd' | 'rd' | 'stocks' | 'mutual_funds' | 'gold';
-type MainAccountType = 'bank' | 'wallet' | 'card' | 'loan' | 'investment';
-
-interface Account {
+export interface Account {
   id: string;
   name: string;
   type: AccountType;
@@ -14,25 +13,25 @@ interface Account {
   notes?: string;
 }
 
-interface AccountType {
+export interface AccountType {
   id: string;
   name: string;
 }
 
-interface AccountSubType {
+export interface AccountSubType {
   id: string;
   name: string;
   type: AccountType;
 }
 
 // Account Types and Constants
-interface DropdownOption {
+export interface DropdownOption {
   value: string;
   label: string;
   icon?: string;
 }
 
-interface CustomDropdownProps {
+export interface CustomDropdownProps {
   label: string;
   selected: string;
   options: Array<{
@@ -48,7 +47,7 @@ interface CustomDropdownProps {
   containerStyle?: object;
 }
 
-interface AccountFormData {
+export interface AccountFormData {
   typeId: string;
   subtypeId: string;
   name: string;

@@ -1,3 +1,5 @@
+import type { Account } from './Account';
+
 export type TransactionType = 'expense' | 'income' | 'transfer';
 export type SMSTransactionType = 'debit' | 'credit' | 'transfer' | 'unknown';
 

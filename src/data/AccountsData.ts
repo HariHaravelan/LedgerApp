@@ -1,3 +1,5 @@
+import type { AccountType, AccountSubType, Account, DropdownOption } from '../types/Account';
+
 export const ACCOUNT_TYPES: AccountType[] = [
     { id: '1', name: "bank" },
     { id: '2', name: "wallet" },
